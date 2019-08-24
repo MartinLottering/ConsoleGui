@@ -1,0 +1,20 @@
+{
+  "name": "cli-gui",
+  "version": "1.0.0",
+  "description": "A GUI for CLIs.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [
+    "cli",
+    "command-line-interface",
+    "gui"
+  ],
+  "author": "Martin Lottering",
+  "license": "ISC",
+  "dependencies": {
+    "hybrids": "^4.0.2",
+    "xml-js": "^1.6.11"
+  }
+}

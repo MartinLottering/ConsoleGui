@@ -1,0 +1,115 @@
+<clis>
+    <cli name="Pipeline" file="pipeline">
+        <arguments>
+            <argument format="--{value}" name="Command" type="select" required="true">
+                <options>
+                    <option>ping</option>
+                    <option>package</option>
+                    <option>deploy</option>
+                    <option>execute</option>
+                    <option>repository</option>
+                    <option>copy</option>
+                </options>
+            </argument>
+            <argument format="--machine {value}" name="Machine" type="text" required="true">
+                <show-when>
+                    <argument name="Command" is="anyOf">
+                        <value>ping</value>
+                        <value>deploy</value>
+                        <value>execute</value>
+                    </argument>
+                </show-when>
+            </argument>
+            <argument format="{subsystem}_{feature}_{version}_{release}" name="Package Name" type="text" required="true">
+                <calculated-arguments>
+                    <argument format="--subsystem {subsystem}"></argument>
+                    <argument format="--feature {feature}"></argument>
+                    <argument format="--version {version}"></argument>
+                    <argument format="--release {release}"></argument>
+                </calculated-arguments>
+                <show-when>
+                    <argument name="Command" is="anyOf">
+                        <value>package</value>
+                        <value>deploy</value>
+                        <value>execute</value>
+                    </argument>
+                </show-when>
+            </argument>
+            <argument format="--package {value}" name="Package Name" type="text" required="true">
+                <show-when>
+                    <argument name="Command" is="anyOf">
+                        <value>execute</value>
+                    </argument>
+                </show-when>
+            </argument>
+            <argument format="--script {value}" name="Script Name" type="text" required="true">
+                <show-when>
+                    <argument name="Command" is="anyOf">
+                        <value>execute</value>
+                    </argument>
+                </show-when>
+            </argument>
+            <argument format="--parameters &quot;{value}&quot;" name="Parameters" type="text">
+                <show-when>
+                    <argument name="Command" is="anyOf">
+                        <value>execute</value>
+                    </argument>
+                </show-when>
+            </argument>
+            <argument format="--source {value}" name="Source Directory" type="directory" required="true">
+                <show-when>
+                    <argument name="Command" is="anyOf">
+                        <value>package</value>
+                    </argument>
+                </show-when>
+            </argument>
+            <argument format="--job {value}" name="Job Name" type="text" required="true">
+                <show-when>
+                    <argument name="Command" is="anyOf">
+                        <value>copy</value>
+                    </argument>
+                </show-when>
+            </argument>
+            <argument format="--from &quot;{value}&quot;" name="From" type="networklocation" required="true">
+                <show-when>
+                    <argument name="Command" is="anyOf">
+                        <value>copy</value>
+                    </argument>
+                </show-when>
+            </argument>
+            <argument format="--top &quot;{value}&quot;" name="To" type="networklocation" required="true">
+                <show-when>
+                    <argument name="Command" is="anyOf">
+                        <value>copy</value>
+                    </argument>
+                </show-when>
+            </argument>
+            <argument format="--purge true" name="Purge" type="checkbox">
+                <show-when>
+                    <argument name="Command" is="anyOf">
+                        <value>package</value>
+                    </argument>
+                </show-when>
+            </argument>
+            <argument format="--environment {value>" name="Environment" type="select">
+                <options>
+                    <option>dev</option>
+                    <option>int</option>
+                    <option>qa</option>
+                    <option>prod</option>
+                </options>
+                <show-when>
+                    <argument name="Command" is="anyOf">
+                        <value>deploy</value>
+                    </argument>
+                </show-when>
+            </argument>
+            <argument format="--timeout {value}" name="Timeout" type="text" default="00:30:00">
+            </argument>
+            <argument format="--debug" name="Debug" type="checkbox">
+            </argument>
+            <argument format="--noupdate" name="Skip Update" type="checkbox">
+            </argument>
+        </arguments>
+    </cli>
+</clis>

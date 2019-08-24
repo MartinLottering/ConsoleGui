@@ -1,0 +1,85 @@
+[
+    {
+        "desc": "Ping an agent",
+        "args": {
+            "command": "ping",
+            "machine": ""
+        },
+        "focus": "machine"
+    },
+    {
+        "desc": "Upload a package",
+        "args": {
+            "command": "package",
+            "tokenPackage": "",
+            "purge": true
+        },
+        "focus": "tokenPackage"
+    },
+    {
+        "desc": "Deploy package to orchestration server",
+        "args": {
+            "command": "deploy",
+            "machine": "CCPRDAPP077",
+            "environment": "dev"
+        },
+        "focus": "package"
+    },
+    {
+        "desc": "Download package from Untrusted repository",
+        "args": {
+            "command": "repository",
+            "action": "download",
+            "repoType": "untrusted"
+        },
+        "focus": "package"
+    },
+    {
+        "desc": "Execute Script",
+        "args": {
+            "command": "execute",
+            "package": "",
+            "machine": "",
+            "script": "",
+            "parameters": "\"\"",
+            "environment": "prod"
+        },
+        "focus": "package"
+    },
+    {
+        "desc": "Sync Trusted Repository",
+        "args": {
+            "command": "copy",
+            "job": "reposync111",
+            "from": "\"\\\\ccprdwf012\\D$\\Data\\pipeline\\Repositories\\Trusted\\{subsystem}\\{package}*\"",
+            "to": "\"\\\\plwinprd03\\D$\\Data\\pipeline\\Repositories\\Trusted\\{subsystem}\"",
+            "timeout": "\"00:30:00\"",
+            "overwrite": true
+        },
+        "focus": "tokenPackage"
+    },
+    {
+        "desc": "Delete Trusted File",
+        "args": {
+            "command": "execute",
+            "package": "pipeline_demo_4.2.0_20190527",
+            "machine": "plwinprd03",
+            "script": "folderhelper.ps1",
+            "parameters": "\"Delete|D:\\Data\\pipeline\\Repositories\\Trusted\\{subsystem}\\{package}*\"",
+            "environment": "prod"
+        },
+        "focus": "parameterspackage"
+    },
+    {
+        "desc": "Sync Untrusted Repository",
+        "args": {
+            "command": "copy",
+            "job": "reposync111",
+            "from": "\"\\\\plwinprd01\\D$\\Data\\pipeline\\Repositories\\UnTrusted\\{subsystem}\\{package}*\"",
+            "to": "\"\\\\ccprdwf013\\D$\\Data\\pipeline\\Repositories\\UnTrusted\\{subsystem}\"",
+            "timeout": "\"00:30:00\"",
+            "overwrite": true
+        },
+        "focus": "tokenPackage"
+    }
+]

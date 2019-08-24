@@ -1,0 +1,25 @@
+<html>
+
+<head>
+    <title>Cli Gui</title>
+    <link rel="stylesheet" href="../styles/styles.css" />
+    <script>
+        const { html, define, dispatch } = require('hybrids')
+        const containerStyles = require('../styles/container-styles')
+        const inputStyles = require('../styles/input-styles')
+        const { dialog, clipboard } = require('electron').remote
+    </script>
+    <script src="../components/copy-to-clibboard-button.js"></script>
+    <script src="../components/cli-arguments-question-engine.js"></script>
+    <script src="../components/cli-argument-question.js"></script>
+    <script src="../components/cli-command-preview.js"></script>
+    <script src="../components/output-stream.js"></script>
+</head>
+
+<body>
+    <cli-arguments-question-engine id="questionEngine"></cli-arguments-question-engine>
+    <output-stream id="output" style="height:400px;"></output-stream>
+    <script>require('./window.js')</script>
+</body>
+
+</html>
