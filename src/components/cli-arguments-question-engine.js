@@ -23,49 +23,37 @@ function runClicked(host, evt) {
     }
 }
 
-function selectDirectory(name) {
-    return function (host, event) {
-        event.preventDefault()
-        dialog.showOpenDialog({
-            title: 'Select Directory',
-            properties: ["openDirectory"]
-        }).then(result => {
-            if (!result.cancelled && result.filePaths[0]) {
-                host[name] = result.filePaths[0]
-                buildPreview(host)
-            }
-        })
-    }
-}
+// function selectDirectory(name) {
+//     return function (host, event) {
+//         event.preventDefault()
+//         dialog.showOpenDialog({
+//             title: 'Select Directory',
+//             properties: ["openDirectory"]
+//         }).then(result => {
+//             if (!result.cancelled && result.filePaths[0]) {
+//                 host[name] = result.filePaths[0]
+//                 buildPreview(host)
+//             }
+//         })
+//     }
+// }
 
 function buildPreview(host) {
-    const startInfo = commandLineBuilder.getProcessStartInfo(host)
+    const args = {
+        arguments: host.clisMeta.getCliArguments(host.cli),
+        values: host.values
+    }
+    const startInfo = commandLineBuilder.getProcessStartInfo(args)
     host.preview = `${startInfo.processName} ${(startInfo.args || []).join(' ')}`
 }
 
-function fieldChanged(host, event) {
-    const id = event.target.id
-    if (!id)
-        throw new Error(`All bound elements must have an id`)
-    host[id] = event.target.type == 'checkbox'
-        ? event.target.checked
-        : event.target.value
-
-    if (id === 'command')
-        showFields(host)
-    else if (id === 'template')
-        selectTemplate(host, event.target.value)
-
-    buildPreview(host)
-}
-
-function findTemplateOPTIONUsingDesc(host, desc) {
-    for (let i = 0; i < host.templates.length; i++) {
-        if (host.templates[i].desc == desc)
-            return host.templates[i]
-    }
-    throw new Error(`Could not find a template with description "${desc}"`)
-}
+// function findTemplateOPTIONUsingDesc(host, desc) {
+//     for (let i = 0; i < host.templates.length; i++) {
+//         if (host.templates[i].desc == desc)
+//             return host.templates[i]
+//     }
+//     throw new Error(`Could not find a template with description "${desc}"`)
+// }
 
 // function selectTemplate(host, templateDesc) {
 //     const template = findTemplateOPTIONUsingDesc(host, templateDesc)
@@ -96,26 +84,6 @@ function findTemplateOPTIONUsingDesc(host, desc) {
 //         }, 300)
 // }
 
-// function showFields(host) {
-//     const isCopy = host.command == 'copy'
-//     const isExecute = host.command == 'execute'
-//     const isPackage = host.command == 'package'
-//     const isDeploy = host.command == 'deploy'
-//     const isPing = host.command == 'ping'
-
-//     host.showJob = isCopy
-//     host.showFrom = isCopy
-//     host.showTo = isCopy
-//     host.showScript = isExecute
-//     host.showParameters = isExecute
-//     host.showPackage = isExecute
-//     host.showTokenPackage = isExecute || isCopy || isPackage
-//     host.showSource = isPackage
-//     host.showPurge = isPackage
-//     host.showMachine = isDeploy || isPing
-//     host.showEnvironment = isDeploy
-// }
-
 // function getLineClasses(show) {
 //     return {
 //         line: true,
@@ -123,12 +91,109 @@ function findTemplateOPTIONUsingDesc(host, desc) {
 //     }
 // }
 
+async function asyncForEach(array, callback) {
+    for (let index = 0; index < array.length; index++) {
+        await callback(array[index], index, array);
+    }
+}
+
+function sleep(milliseconds) {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, milliseconds)
+    })
+}
+
+function hideQuestions(questionsToHide) {
+    return new Promise(async (resolve, reject) => {
+        let count = 0
+        if (questionsToHide.length > 0)
+            await asyncForEach(questionsToHide.reverse(), async (question) => {
+                transition(question, "opacity 1 0 400ms linear", {
+                    onTransitionEnd(element, finished) {
+                        element.style.display = "none"
+                        count++
+                        if (count == questionsToHide.length)
+                            resolve()
+                    }
+                })
+                await sleep(100)
+            })
+        else
+            resolve()
+    })
+}
+
+async function showQuestions(questionsToShow) {
+    if (questionsToShow.length > 0)
+        await asyncForEach(questionsToShow.reverse(), async (question) => {
+            question.style.display = "block"
+            transition(question, "opacity 0 1 400ms linear", {
+                onTransitionEnd(element, finished) {
+                }
+            })
+            await sleep(100)
+        })
+}
+
+async function showFields(host) {
+    const cliArguments = host.clisMeta.getCliArguments(host.cli)
+    const questionsToHide = []
+    const questionsToShow = []
+    for (var cliArgument of cliArguments) {
+        const questions = Array.from(host.shadowRoot.querySelectorAll("cli-argument-question"))
+        const question = questions.find(q => q.argument === cliArgument)
+        if (!question)
+            throw new Error(`Couldn't find a question for argument ${cliArgument.name || cliArgument.format || cliArgument.type}`)
+        if (cliArgument.showWhens && cliArgument.showWhens.length) {
+            let show = false
+            for (var showWhen of cliArgument.showWhens) {
+                const showWhenArgument = cliArguments.find(a => a.name == showWhen.name)
+                if (!showWhenArgument)
+                    throw new Error(`Show when rule points to an argument that does not exist: ${showWhen.name}`)
+                if (showWhen.is === "anyOf") {
+                    var found = false
+                    for (var val of showWhen.values) {
+                        if (val.value === host.values[showWhen.name]) {
+                            found = true
+                            break
+                        }
+                    }
+                    if (found) {
+                        show = true
+                        break
+                    }
+                }
+            }
+            const isVisible = question.style.display !== "none"
+            if (show && !isVisible)
+                questionsToShow.push(question)
+            else if (!show && isVisible)
+                questionsToHide.push(question)
+        }
+    }
+
+    await hideQuestions(questionsToHide)
+    await showQuestions(questionsToShow)
+}
+
+function valueChanged(host, event) {
+    if (!host.values)
+        host.values = {}
+    host.values[event.detail] = event.target.value
+    buildPreview(host)
+    showFields(host)
+}
+
 const CliArgumentsQuestionEngine = {
     clisMeta: {},
     cli: "",
     templates: [],
     template: "",
     preview: SELECT_A_COMMAND,
+
+    questions: children(CliArgumentQuestion),
+
+    values: {},
 
     disabled: {
         get: (host, lastValue) => lastValue,
@@ -154,21 +219,21 @@ const CliArgumentsQuestionEngine = {
 
             <div class="line">
                 <label for="cli">Cli</label>
-                <select id="cli" onchange="${fieldChanged}">
+                <select id="cli" onchange="${propertyChanged}">
                     <option value=""></option>
                     ${clisMeta.getClis().map(cli => html`<option value="${cli.name}">${cli.name}</option>`)}
                 </select>
             </div>
 
-            <div class="line">
+            <div class="line" style="display: none;">
                 <label for="template">Template</label>
-                <select id="template" onchange="${fieldChanged}">
+                <select id="template" onchange="${propertyChanged}">
                     <option value=""></option>
                     ${templates.map(template => html`<option value="${template.desc}">${template.desc}</option>`)}
                 </select>
             </div>
 
-            ${clisMeta.getCliArguments(cli).map(argument => html`<cli-argument-question argument=${argument}></cli-argument-question>`)}
+            ${clisMeta.getCliArguments(cli).map(argument => html`<cli-argument-question style="display: block;" argument=${argument} onchanged="${valueChanged}"></cli-argument-question>`)}
 
         </div>
 

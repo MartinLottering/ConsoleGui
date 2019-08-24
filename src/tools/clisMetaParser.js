@@ -2,10 +2,80 @@ const convert = require('xml-js')
 const path = require('path')
 const fs = require('fs')
 
-function createArgument(argumentMeta) {
-    return {
-        name: argumentMeta._attributes.name
+
+function createOption(optionMeta) {
+    const option = {
+        ...optionMeta._attributes,
+        value: optionMeta._text
     }
+    return option
+}
+
+function createOptions(options) {
+    if (!options)
+        return []
+
+    const results = []
+    if (options.option.length)
+        options.option.forEach(optionMeta => {
+            results.push(createOption(optionMeta))
+        })
+    else
+        results.push(createOption(options.option))
+    return results
+}
+
+function createShowWhenValue(valueMeta) {
+    const showWhenValue = {
+        ...valueMeta._attributes,
+        value: valueMeta._text
+    }
+    return showWhenValue
+}
+
+function createShowWhenValues(values) {
+    if (!values)
+        return []
+
+    const results = []
+    if (values.length)
+        values.forEach(valueMeta => {
+            results.push(createShowWhenValue(valueMeta))
+        })
+    else
+        results.push(createShowWhenValue(values))
+    return results
+}
+
+function createShowWhenArgument(argumentMeta) {
+    const showWhenArgument = {
+        ...argumentMeta._attributes,
+        values: createShowWhenValues(argumentMeta.value)
+    }
+    return showWhenArgument
+}
+
+function createShowWhens(showWhens) {
+    if (!showWhens)
+        return []
+
+    const results = []
+    if (showWhens.argument.length)
+        showWhens.argument.forEach(argumentMeta => {
+            results.push(createShowWhenArgument(argumentMeta))
+        })
+    else
+        results.push(createShowWhenArgument(showWhens.argument))
+    return results
+}
+
+function createArgument(argumentMeta) {
+    const argument = {
+        ...argumentMeta._attributes,
+        options: createOptions(argumentMeta.options),
+        showWhens: createShowWhens(argumentMeta["show-when"])
+    }
+    return argument
 }
 
 function createArguments(arguments) {
@@ -24,8 +94,7 @@ function createArguments(arguments) {
 
 function createCli(cliMeta) {
     return {
-        name: cliMeta._attributes.name,
-        file: cliMeta._attributes.file,
+        ...cliMeta._attributes,
         arguments: createArguments(cliMeta.arguments)
     }
 }

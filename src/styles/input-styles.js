@@ -33,7 +33,7 @@ module.exports = html`
 
         button {
             width: 120px;
-            height: 27px;
+            height: 25px;
         }
 
         .hidden {
