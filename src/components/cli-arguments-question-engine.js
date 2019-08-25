@@ -35,7 +35,7 @@ function buildPreview(host) {
 
 function getCommandLineBuilderArgs(host) {
     return {
-        arguments: host.clisMeta.getCliArguments(host.cli),
+        arguments: host.visibilityInfo.questionsThatShouldBeVisible,
         values: host.values
     }
 }
@@ -120,7 +120,7 @@ function hideQuestions(questionsToHide) {
 
 async function showQuestions(questionsToShow) {
     if (questionsToShow.length > 0)
-        await asyncForEach(questionsToShow.reverse(), async (question) => {
+        await asyncForEach(questionsToShow, async (question) => {
             question.style.display = "block"
             transition(question, `opacity 0 1 ${FRAME_DELAY}ms linear`, {
                 onTransitionEnd(element, finished) {
@@ -163,10 +163,10 @@ function findQuestion(host, cliArgument) {
 }
 
 async function administrateQuestions(host) {
-    const visibilityInfo = workoutQuestionsVisibility(host)
-    await hideQuestions(visibilityInfo.questionsToHide)
-    await showQuestions(visibilityInfo.questionsToShow)
-    administrateQuestionsRequirements(visibilityInfo)
+    host.visibilityInfo = workoutQuestionsVisibility(host)
+    await hideQuestions(host.visibilityInfo.questionsToHide)
+    await showQuestions(host.visibilityInfo.questionsToShow)
+    administrateQuestionsRequirements(host.visibilityInfo)
 }
 
 function workoutQuestionsVisibility(host) {
@@ -253,8 +253,8 @@ function questionChanged(host, event) {
     host.values[id] = event.target.type == 'checkbox'
         ? event.target.checked
         : event.target.value
-    buildPreview(host)
     administrateQuestions(host)
+    buildPreview(host)
 }
 
 const CliArgumentsQuestionEngine = {

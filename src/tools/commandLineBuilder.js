@@ -15,8 +15,8 @@ exports.getProcessStartInfo = function getProcessStartInfo({ arguments, values }
     let processName = 'pipeline'
     let processArgs = []
 
-    arguments.forEach(argument => {
-        processArgument(processArgs, values, argument)
+    arguments.forEach(pair => {
+        processArgument(processArgs, values, pair.cliArgument)
     });
 
     return {
