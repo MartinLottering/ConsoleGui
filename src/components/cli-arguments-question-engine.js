@@ -35,7 +35,7 @@ function buildPreview(host) {
 
 function getCommandLineBuilderArgs(host) {
     return {
-        arguments: host.visibilityInfo.questionsThatShouldBeVisible,
+        arguments: host.changeInfo.questionsThatShouldBeVisible,
         values: host.values
     }
 }
@@ -130,27 +130,38 @@ async function showQuestions(questionsToShow) {
         })
 }
 
-function canShowQuestion(host, cliArguments, cliArgument) {
-    let show = false
-    for (var showWhen of cliArgument.showWhens) {
-        const showWhenArgument = cliArguments.find(a => a.id == showWhen.argumentId)
-        if (!showWhenArgument)
-            throw new Error(`Show when rule points to an argument that does not exist: ${showWhen.name}`)
-        if (showWhen.is === "anyOf") {
+function whenRuleMet(host, cliArguments, whenRules) {
+    let metRule = null
+    for (var whenRule of whenRules) {
+        const whenArgument = cliArguments.find(a => a.id == whenRule.argumentId)
+        if (!whenArgument)
+            throw new Error(`When rule points to an argument that does not exist: ${whenRule.name}`)
+        if (whenRule.is === "anyOf") {
             var found = false
-            for (var val of showWhen.values) {
-                if (val.value === host.values[showWhen.argumentId]) {
+            for (var val of whenRule.values) {
+                if (val.value === host.values[whenRule.argumentId]) {
                     found = true
                     break
                 }
             }
             if (found) {
-                show = true
+                metRule = whenRule
                 break
             }
         }
     }
-    return show
+    return metRule
+}
+
+function canShowQuestion(host, cliArguments, cliArgument) {
+    return !!whenRuleMet(host, cliArguments, cliArgument.showWhens)
+}
+
+function canFocusQuestion(host, cliArguments, cliArgument, changedQuestion) {
+    const metRule = whenRuleMet(host, cliArguments, cliArgument.focusWhens)
+    if (!metRule)
+        return false
+    return metRule.argumentId == changedQuestion.id
 }
 
 function findQuestion(host, cliArgument) {
@@ -162,19 +173,30 @@ function findQuestion(host, cliArgument) {
     return questions[0]
 }
 
-async function administrateQuestions(host) {
-    host.visibilityInfo = workoutQuestionsVisibility(host)
-    await hideQuestions(host.visibilityInfo.questionsToHide)
-    await showQuestions(host.visibilityInfo.questionsToShow)
-    administrateQuestionsRequirements(host.visibilityInfo)
+async function focusQuestion(questionDiv) {
+    const inputsOrSelects = questionInputsOrSelects(questionDiv)
+    if (!inputsOrSelects || !inputsOrSelects.length)
+        throw new Error('Could not find any input or selects inside the div to focus')
+    await sleep(200)
+    inputsOrSelects[0].focus()
 }
 
-function workoutQuestionsVisibility(host) {
+async function administrateQuestions(host, changedQuestion) {
+    host.changeInfo = workoutQuestionsChanges(host, changedQuestion)
+    await hideQuestions(host.changeInfo.questionsToHide)
+    await showQuestions(host.changeInfo.questionsToShow)
+    administrateQuestionsRequirements(host.changeInfo)
+    if (host.changeInfo.questionToFocus)
+        await focusQuestion(host.changeInfo.questionToFocus)
+}
+
+function workoutQuestionsChanges(host, changedQuestion) {
     const cliArguments = host.clisMeta.getCliArguments(host.cli)
     const questionsThatShouldBeVisible = []
     const questionsThatShouldBeHidden = []
     const questionsToHide = []
     const questionsToShow = []
+    let questionToFocus = null
     for (var cliArgument of cliArguments) {
         const question = findQuestion(host, cliArgument)
         if (cliArgument.showWhens && cliArgument.showWhens.length) {
@@ -195,33 +217,46 @@ function workoutQuestionsVisibility(host) {
         } else {
             questionsThatShouldBeVisible.push({ question, cliArgument })
         }
+        if (cliArgument.focusWhens && cliArgument.focusWhens.length) {
+            const focus = canFocusQuestion(host, cliArguments, cliArgument, changedQuestion)
+            const isFocused = document.activeElement === question
+            if (focus && !isFocused)
+                questionToFocus = question
+        }
     }
     return {
         questionsThatShouldBeHidden,
         questionsThatShouldBeVisible,
         questionsToHide,
-        questionsToShow
+        questionsToShow,
+        questionToFocus
     }
 }
 
-function administrateQuestionsRequirements(visibilityInfo) {
-    visibilityInfo.questionsThatShouldBeVisible.forEach(pair => {
-        const inputs = pair.question.querySelectorAll('input')
-        if (inputs && inputs.length > 0) {
-            administrateInputsRequirement(inputs, pair.cliArgument.required)
+function questionInputsOrSelects(questionDiv) {
+    const inputs = questionDiv.querySelectorAll('input')
+    if (inputs && inputs.length > 0) {
+        return inputs
+    } else {
+        const selects = questionDiv.querySelectorAll('select')
+        if (selects && selects.length > 0) {
+            return selects
         } else {
-            const selects = pair.question.querySelectorAll('select')
-            if (selects && selects.length > 0) {
-                administrateInputsRequirement(selects, pair.cliArgument.required)
-            }
+            return []
         }
-        visibilityInfo.questionsThatShouldBeHidden.forEach(question => {
-            const inputs = question.querySelectorAll('input')
-            if (inputs && inputs.length > 0) {
-                inputs.forEach(input => {
-                    input.removeAttribute('required')
-                })
-            }
+    }
+
+}
+
+function administrateQuestionsRequirements(changeInfo) {
+    changeInfo.questionsThatShouldBeVisible.forEach(pair => {
+        const inputsOrSelects = questionInputsOrSelects(pair.question)
+        administrateInputsRequirement(inputsOrSelects, pair.cliArgument.required)
+    })
+    changeInfo.questionsThatShouldBeHidden.forEach(question => {
+        const inputsOrSelects = questionInputsOrSelects(question)
+        inputsOrSelects.forEach(input => {
+            input.removeAttribute('required')
         })
     })
 }
@@ -253,8 +288,15 @@ function questionChanged(host, event) {
     host.values[id] = event.target.type == 'checkbox'
         ? event.target.checked
         : event.target.value
-    administrateQuestions(host)
+    administrateQuestions(host, event.target)
     buildPreview(host)
+    if (host.changeInfo.questionsThatShouldBeVisible[0].cliArgument.id === id) {
+        focusDefaultQuestion(host)
+    }
+}
+
+function focusDefaultQuestion(host) {
+
 }
 
 const CliArgumentsQuestionEngine = {

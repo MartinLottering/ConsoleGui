@@ -70,12 +70,36 @@ function createShowWhens(showWhens) {
     return results
 }
 
+function createFocusWhenArgument(argumentMeta) {
+    const focusWhenArgument = {
+        ...argumentMeta._attributes,
+        argumentId: idify(argumentMeta._attributes.name),
+        values: createShowWhenValues(argumentMeta.value)
+    }
+    return focusWhenArgument
+}
+
+function createFocusWhens(focusWhens) {
+    if (!focusWhens)
+        return []
+
+    const results = []
+    if (focusWhens.argument.length)
+        focusWhens.argument.forEach(argumentMeta => {
+            results.push(createFocusWhenArgument(argumentMeta))
+        })
+    else
+        results.push(createFocusWhenArgument(focusWhens.argument))
+    return results
+}
+
 function createArgument(argumentMeta) {
     const argument = {
         ...argumentMeta._attributes,
         id: idify(argumentMeta._attributes.name),
         options: createOptions(argumentMeta.options),
-        showWhens: createShowWhens(argumentMeta["show-when"])
+        showWhens: createShowWhens(argumentMeta["show-when"]),
+        focusWhens: createFocusWhens(argumentMeta['focus-when'])
     }
     return argument
 }

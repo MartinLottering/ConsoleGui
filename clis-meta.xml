@@ -12,6 +12,11 @@
                 </options>
             </argument>
             <argument format="--machine {value}" name="Machine" type="text" required="true">
+                <focus-when>
+                    <argument name="Command" is="anyOf">
+                        <value>ping</value>
+                    </argument>
+                </focus-when>
                 <show-when>
                     <argument name="Command" is="anyOf">
                         <value>ping</value>
