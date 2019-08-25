@@ -50,6 +50,7 @@ function createShowWhenValues(values) {
 function createShowWhenArgument(argumentMeta) {
     const showWhenArgument = {
         ...argumentMeta._attributes,
+        argumentId: idify(argumentMeta._attributes.name),
         values: createShowWhenValues(argumentMeta.value)
     }
     return showWhenArgument
@@ -72,6 +73,7 @@ function createShowWhens(showWhens) {
 function createArgument(argumentMeta) {
     const argument = {
         ...argumentMeta._attributes,
+        id: idify(argumentMeta._attributes.name),
         options: createOptions(argumentMeta.options),
         showWhens: createShowWhens(argumentMeta["show-when"])
     }

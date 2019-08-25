@@ -92,16 +92,25 @@ function sleep(milliseconds) {
 function hideQuestions(questionsToHide) {
     return new Promise(async (resolve, reject) => {
         let count = 0
+
+        function end(element) {
+            element.style.display = "none"
+            count++
+            if (count == questionsToHide.length)
+                resolve()
+        }
+
         if (questionsToHide.length > 0)
             await asyncForEach(questionsToHide.reverse(), async (question) => {
-                transition(question, `opacity 1 0 ${FRAME_DELAY}ms linear`, {
-                    onTransitionEnd(element, finished) {
-                        element.style.display = "none"
-                        count++
-                        if (count == questionsToHide.length)
-                            resolve()
-                    }
-                })
+                if (question.style.opacity === "0") {
+                    end(question)
+                } else {
+                    transition(question, `opacity 1 0 ${FRAME_DELAY}ms linear`, {
+                        onTransitionEnd(element, finished) {
+                            end(element)
+                        }
+                    })
+                }
                 await sleep(STEP_DELAY)
             })
         else
@@ -124,13 +133,13 @@ async function showQuestions(questionsToShow) {
 function canShowQuestion(host, cliArguments, cliArgument) {
     let show = false
     for (var showWhen of cliArgument.showWhens) {
-        const showWhenArgument = cliArguments.find(a => a.name == showWhen.name)
+        const showWhenArgument = cliArguments.find(a => a.id == showWhen.argumentId)
         if (!showWhenArgument)
             throw new Error(`Show when rule points to an argument that does not exist: ${showWhen.name}`)
         if (showWhen.is === "anyOf") {
             var found = false
             for (var val of showWhen.values) {
-                if (val.value === host.values[showWhen.name]) {
+                if (val.value === host.values[showWhen.argumentId]) {
                     found = true
                     break
                 }
@@ -145,11 +154,12 @@ function canShowQuestion(host, cliArguments, cliArgument) {
 }
 
 function findQuestion(host, cliArgument) {
-    const questions = Array.from(host.shadowRoot.querySelectorAll("cli-argument-question"))
-    const question = questions.find(q => q.argument === cliArgument)
-    if (!question)
+    const questions = host.shadowRoot.querySelectorAll(`#div_${cliArgument.id}`)
+    if (questions.length > 1)
+        throw new Error(`Argument names must be unique. Found ${quuestions.length.toString()} questions called '${cliArgument.name}'`)
+    if (questions.length < 1)
         throw new Error(`Couldn't find a question for argument ${cliArgument.name || cliArgument.format || cliArgument.type}`)
-    return question
+    return questions[0]
 }
 
 async function administrateQuestions(host) {
@@ -196,17 +206,17 @@ function workoutQuestionsVisibility(host) {
 
 function administrateQuestionsRequirements(visibilityInfo) {
     visibilityInfo.questionsThatShouldBeVisible.forEach(pair => {
-        const inputs = pair.question.shadowRoot.querySelectorAll('input')
+        const inputs = pair.question.querySelectorAll('input')
         if (inputs && inputs.length > 0) {
             administrateInputsRequirement(inputs, pair.cliArgument.required)
         } else {
-            const selects = pair.question.shadowRoot.querySelectorAll('select')
+            const selects = pair.question.querySelectorAll('select')
             if (selects && selects.length > 0) {
                 administrateInputsRequirement(selects, pair.cliArgument.required)
             }
         }
         visibilityInfo.questionsThatShouldBeHidden.forEach(question => {
-            const inputs = question.shadowRoot.querySelectorAll('input')
+            const inputs = question.querySelectorAll('input')
             if (inputs && inputs.length > 0) {
                 inputs.forEach(input => {
                     input.removeAttribute('required')
@@ -225,10 +235,24 @@ function administrateInputsRequirement(inputs, required) {
     })
 }
 
-function valueChanged(host, event) {
+function propertyChanged(host, event) {
+    const id = event.target.id
+    if (!id)
+        throw new Error(`All bound elements must have an id`)
+    host[id] = event.target.type == 'checkbox'
+        ? event.target.checked
+        : event.target.value
+}
+
+function questionChanged(host, event) {
+    const id = event.target.id
+    if (!id)
+        throw new Error(`All bound elements must have an id`)
     if (!host.values)
         host.values = {}
-    host.values[event.detail] = event.target.value
+    host.values[id] = event.target.type == 'checkbox'
+        ? event.target.checked
+        : event.target.value
     buildPreview(host)
     administrateQuestions(host)
 }
@@ -282,7 +306,31 @@ const CliArgumentsQuestionEngine = {
                 </select>
             </div>
 
-            ${clisMeta.getCliArguments(cli).map(argument => html`<cli-argument-question style="display: block;" argument=${argument} onchanged="${valueChanged}" required="true"></cli-argument-question>`)}
+            ${clisMeta
+            .getCliArguments(cli)
+            .map(argument => html`
+
+            <div class="line" id="div_${argument.id}" style="display: block">
+                <label for="${argument.id}">${argument.name}</label>
+                ${argument.type == "select"
+                    ? html`
+                    <select id="${argument.id}" onchange="${questionChanged}">
+                        <option value=""></option>
+                        ${argument.options.map(option => html`<option value="${option.value}">${option.value}</option>`)}
+                    </select>`
+                    : argument.type == "text" || argument.type == "networklocation"
+                        ? html`
+                    <input id="${argument.id}" onchange="${questionChanged}" onkeyup="${questionChanged}" />`
+                        : argument.type == "directory"
+                            ? html`
+                    <input id="${argument.id}" onchange="${questionChanged}" onkeyup="${questionChanged}" />
+                    <button onclick="${selectDirectory(argument.id)}">Select Directory</button>`
+                            : argument.type == "checkbox"
+                                ? html`
+                    <input id="${argument.id}" type="checkbox" onchange="${questionChanged}" onkeyup="${questionChanged}" />`
+                                : "unsupported"}
+            </div>
+            ` )}
 
         </div>
 

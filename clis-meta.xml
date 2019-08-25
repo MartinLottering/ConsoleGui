@@ -20,7 +20,7 @@
                     </argument>
                 </show-when>
             </argument>
-            <argument format="{subsystem}_{feature}_{version}_{release}" name="Package Name" type="text" required="true">
+            <argument format="{subsystem}_{feature}_{version}_{release}" name="Package Name 1" type="text" required="true">
                 <calculated-arguments>
                     <argument format="--subsystem {subsystem}"></argument>
                     <argument format="--feature {feature}"></argument>
@@ -35,7 +35,7 @@
                     </argument>
                 </show-when>
             </argument>
-            <argument format="--package {value}" name="Package Name" type="text" required="true">
+            <argument format="--package {value}" name="Package Name 2" type="text" required="true">
                 <show-when>
                     <argument name="Command" is="anyOf">
                         <value>execute</value>
