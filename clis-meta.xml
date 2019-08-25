@@ -77,7 +77,14 @@
                     </argument>
                 </show-when>
             </argument>
-            <argument format="--top &quot;{value}&quot;" name="To" type="networklocation" required="true">
+            <argument format="--to &quot;{value}&quot;" name="To" type="networklocation" required="true">
+                <show-when>
+                    <argument name="Command" is="anyOf">
+                        <value>copy</value>
+                    </argument>
+                </show-when>
+            </argument>
+            <argument format="--overwrite" name="Overwrite" type="checkbox">
                 <show-when>
                     <argument name="Command" is="anyOf">
                         <value>copy</value>

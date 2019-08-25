@@ -2,6 +2,9 @@ const commandLineBuilder = require('../tools/commandLineBuilder')
 
 const SELECT_A_COMMAND = 'Select a command or template'
 
+const FRAME_DELAY = 100
+const STEP_DELAY = 50
+
 function forEach(host, cssSelector, action) {
     const elements = host.shadowRoot.querySelectorAll(cssSelector)
     elements.forEach(action)
@@ -15,7 +18,8 @@ function setAllElemenetsDisabled(host, disabled) {
 
 function runClicked(host, evt) {
     evt.preventDefault()
-    const startInfo = commandLineBuilder.getProcessStartInfo(host)
+    const args = getCommandLineBuilderArgs(host)
+    const startInfo = commandLineBuilder.getProcessStartInfo(args)
     if (startInfo.processName != SELECT_A_COMMAND
         && startInfo.processName) {
         dispatch(host, 'runClicked', { detail: startInfo })
@@ -23,28 +27,17 @@ function runClicked(host, evt) {
     }
 }
 
-// function selectDirectory(name) {
-//     return function (host, event) {
-//         event.preventDefault()
-//         dialog.showOpenDialog({
-//             title: 'Select Directory',
-//             properties: ["openDirectory"]
-//         }).then(result => {
-//             if (!result.cancelled && result.filePaths[0]) {
-//                 host[name] = result.filePaths[0]
-//                 buildPreview(host)
-//             }
-//         })
-//     }
-// }
-
 function buildPreview(host) {
-    const args = {
+    const args = getCommandLineBuilderArgs(host)
+    const startInfo = commandLineBuilder.getProcessStartInfo(args)
+    host.preview = `${startInfo.processName} ${(startInfo.args || []).join(' ')}`
+}
+
+function getCommandLineBuilderArgs(host) {
+    return {
         arguments: host.clisMeta.getCliArguments(host.cli),
         values: host.values
     }
-    const startInfo = commandLineBuilder.getProcessStartInfo(args)
-    host.preview = `${startInfo.processName} ${(startInfo.args || []).join(' ')}`
 }
 
 // function findTemplateOPTIONUsingDesc(host, desc) {
@@ -84,13 +77,6 @@ function buildPreview(host) {
 //         }, 300)
 // }
 
-// function getLineClasses(show) {
-//     return {
-//         line: true,
-//         hidden: !show
-//     }
-// }
-
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array);
@@ -108,7 +94,7 @@ function hideQuestions(questionsToHide) {
         let count = 0
         if (questionsToHide.length > 0)
             await asyncForEach(questionsToHide.reverse(), async (question) => {
-                transition(question, "opacity 1 0 400ms linear", {
+                transition(question, `opacity 1 0 ${FRAME_DELAY}ms linear`, {
                     onTransitionEnd(element, finished) {
                         element.style.display = "none"
                         count++
@@ -116,7 +102,7 @@ function hideQuestions(questionsToHide) {
                             resolve()
                     }
                 })
-                await sleep(100)
+                await sleep(STEP_DELAY)
             })
         else
             resolve()
@@ -127,53 +113,116 @@ async function showQuestions(questionsToShow) {
     if (questionsToShow.length > 0)
         await asyncForEach(questionsToShow.reverse(), async (question) => {
             question.style.display = "block"
-            transition(question, "opacity 0 1 400ms linear", {
+            transition(question, `opacity 0 1 ${FRAME_DELAY}ms linear`, {
                 onTransitionEnd(element, finished) {
                 }
             })
-            await sleep(100)
+            await sleep(STEP_DELAY)
         })
 }
 
-async function showFields(host) {
+function canShowQuestion(host, cliArguments, cliArgument) {
+    let show = false
+    for (var showWhen of cliArgument.showWhens) {
+        const showWhenArgument = cliArguments.find(a => a.name == showWhen.name)
+        if (!showWhenArgument)
+            throw new Error(`Show when rule points to an argument that does not exist: ${showWhen.name}`)
+        if (showWhen.is === "anyOf") {
+            var found = false
+            for (var val of showWhen.values) {
+                if (val.value === host.values[showWhen.name]) {
+                    found = true
+                    break
+                }
+            }
+            if (found) {
+                show = true
+                break
+            }
+        }
+    }
+    return show
+}
+
+function findQuestion(host, cliArgument) {
+    const questions = Array.from(host.shadowRoot.querySelectorAll("cli-argument-question"))
+    const question = questions.find(q => q.argument === cliArgument)
+    if (!question)
+        throw new Error(`Couldn't find a question for argument ${cliArgument.name || cliArgument.format || cliArgument.type}`)
+    return question
+}
+
+async function administrateQuestions(host) {
+    const visibilityInfo = workoutQuestionsVisibility(host)
+    await hideQuestions(visibilityInfo.questionsToHide)
+    await showQuestions(visibilityInfo.questionsToShow)
+    administrateQuestionsRequirements(visibilityInfo)
+}
+
+function workoutQuestionsVisibility(host) {
     const cliArguments = host.clisMeta.getCliArguments(host.cli)
+    const questionsThatShouldBeVisible = []
+    const questionsThatShouldBeHidden = []
     const questionsToHide = []
     const questionsToShow = []
     for (var cliArgument of cliArguments) {
-        const questions = Array.from(host.shadowRoot.querySelectorAll("cli-argument-question"))
-        const question = questions.find(q => q.argument === cliArgument)
-        if (!question)
-            throw new Error(`Couldn't find a question for argument ${cliArgument.name || cliArgument.format || cliArgument.type}`)
+        const question = findQuestion(host, cliArgument)
         if (cliArgument.showWhens && cliArgument.showWhens.length) {
-            let show = false
-            for (var showWhen of cliArgument.showWhens) {
-                const showWhenArgument = cliArguments.find(a => a.name == showWhen.name)
-                if (!showWhenArgument)
-                    throw new Error(`Show when rule points to an argument that does not exist: ${showWhen.name}`)
-                if (showWhen.is === "anyOf") {
-                    var found = false
-                    for (var val of showWhen.values) {
-                        if (val.value === host.values[showWhen.name]) {
-                            found = true
-                            break
-                        }
-                    }
-                    if (found) {
-                        show = true
-                        break
-                    }
-                }
-            }
+            const show = canShowQuestion(host, cliArguments, cliArgument)
             const isVisible = question.style.display !== "none"
-            if (show && !isVisible)
+            if (show && !isVisible) {
                 questionsToShow.push(question)
-            else if (!show && isVisible)
+                questionsThatShouldBeVisible.push({ question, cliArgument })
+            }
+            else if (!show && isVisible) {
                 questionsToHide.push(question)
+                questionsThatShouldBeHidden.push(question)
+            } else if (show) {
+                questionsThatShouldBeVisible.push({ question, cliArgument })
+            } else {
+                questionsThatShouldBeHidden.push(question)
+            }
+        } else {
+            questionsThatShouldBeVisible.push({ question, cliArgument })
         }
     }
+    return {
+        questionsThatShouldBeHidden,
+        questionsThatShouldBeVisible,
+        questionsToHide,
+        questionsToShow
+    }
+}
 
-    await hideQuestions(questionsToHide)
-    await showQuestions(questionsToShow)
+function administrateQuestionsRequirements(visibilityInfo) {
+    visibilityInfo.questionsThatShouldBeVisible.forEach(pair => {
+        const inputs = pair.question.shadowRoot.querySelectorAll('input')
+        if (inputs && inputs.length > 0) {
+            administrateInputsRequirement(inputs, pair.cliArgument.required)
+        } else {
+            const selects = pair.question.shadowRoot.querySelectorAll('select')
+            if (selects && selects.length > 0) {
+                administrateInputsRequirement(selects, pair.cliArgument.required)
+            }
+        }
+        visibilityInfo.questionsThatShouldBeHidden.forEach(question => {
+            const inputs = question.shadowRoot.querySelectorAll('input')
+            if (inputs && inputs.length > 0) {
+                inputs.forEach(input => {
+                    input.removeAttribute('required')
+                })
+            }
+        })
+    })
+}
+
+function administrateInputsRequirement(inputs, required) {
+    inputs.forEach(input => {
+        if (required)
+            input.setAttribute('required', true)
+        else
+            input.removeAttribute('required')
+    })
 }
 
 function valueChanged(host, event) {
@@ -181,7 +230,7 @@ function valueChanged(host, event) {
         host.values = {}
     host.values[event.detail] = event.target.value
     buildPreview(host)
-    showFields(host)
+    administrateQuestions(host)
 }
 
 const CliArgumentsQuestionEngine = {
@@ -233,7 +282,7 @@ const CliArgumentsQuestionEngine = {
                 </select>
             </div>
 
-            ${clisMeta.getCliArguments(cli).map(argument => html`<cli-argument-question style="display: block;" argument=${argument} onchanged="${valueChanged}"></cli-argument-question>`)}
+            ${clisMeta.getCliArguments(cli).map(argument => html`<cli-argument-question style="display: block;" argument=${argument} onchanged="${valueChanged}" required="true"></cli-argument-question>`)}
 
         </div>
 

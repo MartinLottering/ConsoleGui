@@ -1,12 +1,22 @@
+function processArgument(processArgs, values, { name, format, type }) {
+    if (!values[name])
+        return
+    if (format) {
+        if (format.includes("{value}"))
+            processArgs.push(format.replace("{value}", values[name]))
+        else if (type === "checkbox") {
+            if (values[name])
+                processArgs.push(format)
+        }
+    }
+}
+
 exports.getProcessStartInfo = function getProcessStartInfo({ arguments, values }) {
     let processName = 'pipeline'
     let processArgs = []
 
     arguments.forEach(argument => {
-        if (!values[argument.name])
-            return
-        if (argument.format && argument.format.includes("{value}"))
-            processArgs.push(argument.format.replace("{value}", values[argument.name]))
+        processArgument(processArgs, values, argument)
     });
 
     return {

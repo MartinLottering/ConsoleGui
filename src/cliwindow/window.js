@@ -32,7 +32,7 @@ function runClicked(evt) {
 
 function cancelRun() {
     child = null
-    fields.disabled = false
+    questionEngine.disabled = false
 }
 
 let child
