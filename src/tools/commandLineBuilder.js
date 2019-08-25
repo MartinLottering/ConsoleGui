@@ -1,11 +1,11 @@
-function processArgument(processArgs, values, { name, format, type }) {
-    if (!values[name])
+function processArgument(processArgs, values, { id, format, type }) {
+    if (!values[id])
         return
     if (format) {
         if (format.includes("{value}"))
-            processArgs.push(format.replace("{value}", values[name]))
+            processArgs.push(format.replace("{value}", values[id]))
         else if (type === "checkbox") {
-            if (values[name])
+            if (values[id])
                 processArgs.push(format)
         }
     }

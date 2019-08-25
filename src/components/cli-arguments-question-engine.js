@@ -264,8 +264,6 @@ const CliArgumentsQuestionEngine = {
     template: "",
     preview: SELECT_A_COMMAND,
 
-    questions: children(CliArgumentQuestion),
-
     values: {},
 
     disabled: {
@@ -339,6 +337,22 @@ const CliArgumentsQuestionEngine = {
         </div>
     </form>
     `
+}
+
+function selectDirectory(id) {
+    return function (host, event) {
+        event.preventDefault()
+        dialog.showOpenDialog({
+            title: 'Select Directory',
+            properties: ["openDirectory"]
+        }).then(result => {
+            if (!result.cancelled && result.filePaths[0]) {
+                const element = host.shadowRoot.getElementById(id)
+                element.value = result.filePaths[0]
+                dispatch(element, 'change')
+            }
+        })
+    }
 }
 
 define('cli-arguments-question-engine', CliArgumentsQuestionEngine)
