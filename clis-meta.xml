@@ -259,7 +259,7 @@
             </template>
             <template desc="Sync PL2 -> PL3 (Trusted)">
                 <argument name="Command" value="copy" />
-                <argument name="Job" value="reposync111" />
+                <argument name="Job Name" value="reposync111" />
                 <argument name="From" value="&quot;\\ccprdwf012\D$\Data\pipeline\Repositories\Trusted\{subsystem}\{package}*&quot;" />
                 <argument name="To" value="&quot;\\plwinprd03\D$\Data\pipeline\Repositories\Trusted\{subsystem}&quot;" />
                 <argument name="Timeout" value="00:30:00" />
@@ -267,7 +267,7 @@
             </template>
             <template desc="Sync PL3 -> PL2 (Untrusted)">
                 <argument name="Command" value="copy" />
-                <argument name="Job" value="reposync222" />
+                <argument name="Job Name" value="reposync222" />
                 <argument name="From" value="&quot;\\plwinprd01\D$\Data\pipeline\Repositories\UnTrusted\{subsystem}\{package}*&quot;" />
                 <argument name="To" value="&quot;\\ccprdwf013\D$\Data\pipeline\Repositories\UnTrusted\{subsystem}&quot;" />
                 <argument name="Timeout" value="00:30:00" />

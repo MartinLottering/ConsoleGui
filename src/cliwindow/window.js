@@ -1,9 +1,28 @@
 const child_process = require('child_process')
 const clisMetaParser = require('../tools/clisMetaParser')
+const { ipcRenderer: ipc } = require('electron')
 
 function initialize() {
     questionEngine.clisMeta = clisMetaParser()
     questionEngine.addEventListener('runClicked', runClicked)
+
+    ipc.on('populate', async (evt, args) => {
+        if (questionEngine.cli !== args.cli) {
+            let resolve, reject
+            const promise = new Promise((res_, rej_) => {
+                resolve = res_
+                reject = rej_
+            })
+            const templatesLoadedHandler = (event) => {
+                resolve()
+            }
+            questionEngine.addEventListener('templatesLoaded', templatesLoadedHandler)
+            questionEngine.cli = args.cli
+            await promise
+            questionEngine.removeEventListener('templatesLoaded', templatesLoadedHandler)
+        }
+        questionEngine.template = args.template
+    })
 }
 
 function runClicked(evt) {

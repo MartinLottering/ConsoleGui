@@ -27,7 +27,7 @@ module.exports = function (app, tray) {
             submenu: clis.getCliTemplates(cli.name).map(template => {
                 return {
                     label: template.desc,
-                    click: _ => CliWindow.run(cli.name, template)
+                    click: _ => CliWindow.run({ cli: cli.name, template: template.desc })
                 }
             })
         }

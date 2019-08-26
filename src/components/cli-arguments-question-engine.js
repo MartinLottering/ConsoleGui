@@ -294,10 +294,11 @@ async function propertyChanged(host, event) {
         ? event.target.checked
         : event.target.value
     if (id === 'cli') {
-        host.templates = host.clisMeta.getCliTemplates(host.cli)
+        host.templates = host.clisMeta.getCliTemplates(host._cli)
         host.template = ''
-    } else if (id === 'template') {
-        const template = host.templates.find(t => t.desc === host.template)
+        dispatch(host, 'templatesLoaded')
+    } else if (id === 'template' && host._template) {
+        const template = host.templates.find(t => t.desc === host._template)
         for (let argument of template.arguments) {
             const element = host.shadowRoot.getElementById(argument.name)
             element.value = argument.value
@@ -322,9 +323,37 @@ function questionChanged(host, event) {
 
 const CliArgumentsQuestionEngine = {
     clisMeta: {},
-    cli: "",
+    cli: {
+        get: (host, lastValue) => host._cli,
+        set: (host, value, lastValue) => {
+            if (host._isSettingCli)
+                return
+            host._isSettingCli = true
+            try {
+                host._cli = value
+                const cliElement = host.shadowRoot.getElementById('cli')
+                propertyChanged(host, { target: cliElement })
+            } finally {
+                host._isSettingCli = false
+            }
+        }
+    },
     templates: [],
-    template: "",
+    template: {
+        get: (host, lastValue) => host._template,
+        set: (host, value, lastValue) => {
+            if (host._isSettingTemplate)
+                return
+            host._isSettingTemplate = true
+            try {
+                host._template = value
+                const templateElement = host.shadowRoot.getElementById('template')
+                propertyChanged(host, { target: templateElement })
+            } finally {
+                host._isSettingTemplate = false
+            }
+        }
+    },
     preview: SELECT_A_COMMAND,
 
     values: {},
@@ -339,7 +368,8 @@ const CliArgumentsQuestionEngine = {
         }
     },
 
-    render: ({ clisMeta, cli, templates, template, arguments, preview }) => html`
+    render: ({ clisMeta, _cli: cli, templates, _template: template, arguments, preview }) => {
+        return html`
 
     ${containerStyles}
     ${inputStyles}
@@ -353,7 +383,7 @@ const CliArgumentsQuestionEngine = {
 
             <div class="line">
                 <label for="cli">Cli</label>
-                <select id="cli" onchange="${propertyChanged}">
+                <select id="cli" value="${cli}" onchange="${html.set('cli')}">
                     <option value=""></option>
                     ${clisMeta.getClis().map(cli => html`<option value="${cli.name}">${cli.name}</option>`)}
                 </select>
@@ -361,35 +391,35 @@ const CliArgumentsQuestionEngine = {
 
             <div class="line">
                 <label for="template">Template</label>
-                <select id="template" onchange="${propertyChanged}">
+                <select id="template" value="${template}" onchange="${html.set('template')}">
                     <option value=""></option>
                     ${templates.map(template => html`<option value="${template.desc}">${template.desc}</option>`)}
                 </select>
             </div>
 
             ${clisMeta
-            .getCliArguments(cli)
-            .map(argument => html`
+                .getCliArguments(cli)
+                .map(argument => html`
 
             <div class="line" id="div_${argument.id}" style="display: block">
                 <label for="${argument.id}">${argument.name}</label>
                 ${argument.type == "select"
-                    ? html`
+                        ? html`
                     <select id="${argument.id}" onchange="${questionChanged}">
                         <option value=""></option>
                         ${argument.options.map(option => html`<option value="${option.value}">${option.value}</option>`)}
                     </select>`
-                    : argument.type == "text" || argument.type == "networklocation"
-                        ? html`
-                    <input id="${argument.id}" onchange="${questionChanged}" onkeyup="${questionChanged}" />`
-                        : argument.type == "directory"
+                        : argument.type == "text" || argument.type == "networklocation"
                             ? html`
+                    <input id="${argument.id}" onchange="${questionChanged}" onkeyup="${questionChanged}" />`
+                            : argument.type == "directory"
+                                ? html`
                     <input id="${argument.id}" onchange="${questionChanged}" onkeyup="${questionChanged}" />
                     <button onclick="${selectDirectory(argument.id)}">Select Directory</button>`
-                            : argument.type == "checkbox"
-                                ? html`
+                                : argument.type == "checkbox"
+                                    ? html`
                     <input id="${argument.id}" type="checkbox" onchange="${questionChanged}" onkeyup="${questionChanged}" />`
-                                : "unsupported"}
+                                    : "unsupported"}
             </div>
             ` )}
 
@@ -400,6 +430,7 @@ const CliArgumentsQuestionEngine = {
         </div>
     </form>
     `
+    }
 }
 
 function selectDirectory(id) {
