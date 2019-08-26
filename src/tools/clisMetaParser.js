@@ -1,7 +1,7 @@
 const convert = require('xml-js')
 const path = require('path')
 const fs = require('fs')
-
+const idify = require('./idify')
 
 function createOption(optionMeta) {
     const option = {
@@ -12,17 +12,9 @@ function createOption(optionMeta) {
 }
 
 function createOptions(options) {
-    if (!options)
-        return []
-
-    const results = []
-    if (options.option.length)
-        options.option.forEach(optionMeta => {
-            results.push(createOption(optionMeta))
-        })
-    else
-        results.push(createOption(options.option))
-    return results
+    return !options
+        ? []
+        : produceFromOneOrMany(options.option, createOption)
 }
 
 function createShowWhenValue(valueMeta) {
@@ -34,17 +26,9 @@ function createShowWhenValue(valueMeta) {
 }
 
 function createShowWhenValues(values) {
-    if (!values)
-        return []
-
-    const results = []
-    if (values.length)
-        values.forEach(valueMeta => {
-            results.push(createShowWhenValue(valueMeta))
-        })
-    else
-        results.push(createShowWhenValue(values))
-    return results
+    return !values
+        ? []
+        : produceFromOneOrMany(values, createShowWhenValue)
 }
 
 function createShowWhenArgument(argumentMeta) {
@@ -57,17 +41,9 @@ function createShowWhenArgument(argumentMeta) {
 }
 
 function createShowWhens(showWhens) {
-    if (!showWhens)
-        return []
-
-    const results = []
-    if (showWhens.argument.length)
-        showWhens.argument.forEach(argumentMeta => {
-            results.push(createShowWhenArgument(argumentMeta))
-        })
-    else
-        results.push(createShowWhenArgument(showWhens.argument))
-    return results
+    return !showWhens
+        ? []
+        : produceFromOneOrMany(showWhens.argument, createShowWhenArgument)
 }
 
 function createFocusWhenArgument(argumentMeta) {
@@ -80,17 +56,9 @@ function createFocusWhenArgument(argumentMeta) {
 }
 
 function createFocusWhens(focusWhens) {
-    if (!focusWhens)
-        return []
-
-    const results = []
-    if (focusWhens.argument.length)
-        focusWhens.argument.forEach(argumentMeta => {
-            results.push(createFocusWhenArgument(argumentMeta))
-        })
-    else
-        results.push(createFocusWhenArgument(focusWhens.argument))
-    return results
+    return !focusWhens
+        ? []
+        : produceFromOneOrMany(focusWhens.argument, createFocusWhenArgument)
 }
 
 function createFormatArgument(argumentMeta) {
@@ -101,17 +69,9 @@ function createFormatArgument(argumentMeta) {
 }
 
 function createFormats(format) {
-    if (!format)
-        return []
-
-    const results = []
-    if (format.argument.length)
-        format.argument.forEach(argumentMeta => {
-            results.push(createFormatArgument(argumentMeta))
-        })
-    else
-        results.push(createFormatArgument(format.argument))
-    return results
+    return !format
+        ? []
+        : produceFromOneOrMany(format.argument, createFormatArgument)
 }
 
 function createArgument(argumentMeta) {
@@ -127,23 +87,53 @@ function createArgument(argumentMeta) {
 }
 
 function createArguments(arguments) {
-    if (!arguments)
-        return []
+    return !arguments
+        ? []
+        : produceFromOneOrMany(arguments.argument, createArgument)
+}
 
+function createTemplateArgument(argumentMeta) {
+    return {
+        ...argumentMeta._attributes
+    }
+}
+
+function createTemplateArguments(templateMeta) {
+    return produceFromOneOrMany(templateMeta.argument, createTemplateArgument)
+}
+
+function createTemplate(templateMeta) {
+    const template = {
+        ...templateMeta._attributes,
+        arguments: createTemplateArguments(templateMeta)
+    }
+    return template
+}
+
+function createTemplates(templates) {
+    return !templates
+        ? []
+        : produceFromOneOrMany(templates.template, createTemplate)
+}
+
+function produceFromOneOrMany(instanceOrSequence, factory) {
+    if (!instanceOrSequence)
+        return []
     const results = []
-    if (arguments.argument.length)
-        arguments.argument.forEach(argumentMeta => {
-            results.push(createArgument(argumentMeta))
+    if (instanceOrSequence.length)
+        instanceOrSequence.forEach(item => {
+            results.push(factory(item))
         })
     else
-        results.push(createArgument(arguments.argument))
+        results.push(factory(instanceOrSequence))
     return results
 }
 
 function createCli(cliMeta) {
     return {
         ...cliMeta._attributes,
-        arguments: createArguments(cliMeta.arguments)
+        arguments: createArguments(cliMeta.arguments),
+        templates: createTemplates(cliMeta.templates)
     }
 }
 
@@ -161,15 +151,8 @@ module.exports = function () {
         if (!loaded) {
             loaded = true
             if (cliMeta && cliMeta.clis) {
-                if (cliMeta.clis.cli) {
-                    const cli = createCli(cliMeta.clis.cli)
-                    clis[cli.name] = cli
-                } else if (cliMeta.clis.length) {
-                    cliMeta.clis.forEach(cliElement => {
-                        const cli = createCli(cliElement)
-                        clis[cli.name] = cli
-                    })
-                }
+                const clisArray = produceFromOneOrMany(cliMeta.clis.cli, createCli)
+                clisArray.forEach(cli => clis[cli.name] = cli)
             }
         }
         return Object.values(clis)
@@ -181,8 +164,18 @@ module.exports = function () {
         return clis[cli].arguments
     }
 
+    function getCliTemplates(cli) {
+        if (!cli)
+            return []
+        const cliObj = clis[cli]
+        if (!cliObj)
+            throw new Error(`Could not find cli "${cli}"`)
+        return cliObj.templates
+    }
+
     return {
         getClis,
-        getCliArguments
+        getCliArguments,
+        getCliTemplates
     }
 }

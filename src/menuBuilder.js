@@ -1,16 +1,10 @@
 const electron = require('electron')
 const { Menu } = electron
+const clisMetaParser = require('./tools/clisMetaParser')
 
 module.exports = function (app, tray) {
 
     let menuItems = [
-        {
-            type: 'separator'
-        },
-        {
-            label: 'Set Batch Permissions',
-            click: _ => PermissionsWindow.run()
-        },
         {
             type: 'separator'
         },
@@ -25,14 +19,21 @@ module.exports = function (app, tray) {
     ]
 
     const CliWindow = require('./cliwindow/windowfactory')
-    const templates = require('./cliwindow/templates')
-    const templateMenuItems = templates.map(template => { 
+
+    const clis = clisMetaParser()
+    const cliMenus = clis.getClis().map(cli => {
         return {
-            "label": template.desc || "<Unknown>",
-            click: _ => CliWindow.run(template)
+            label: cli.name,
+            submenu: clis.getCliTemplates(cli.name).map(template => {
+                return {
+                    label: template.desc,
+                    click: _ => CliWindow.run(cli.name, template)
+                }
+            })
         }
-    });
-    const fullMenu = templateMenuItems.concat(menuItems);
+    })
+
+    const fullMenu = cliMenus.concat(menuItems)
 
     return Menu.buildFromTemplate(fullMenu)
 }

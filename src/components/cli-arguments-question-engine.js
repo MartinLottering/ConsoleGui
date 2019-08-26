@@ -181,13 +181,29 @@ async function focusQuestion(questionDiv) {
     inputsOrSelects[0].focus()
 }
 
+let _isAdministrating = false
+let _adminPromise = null
+
 async function administrateQuestions(host, changedQuestion) {
-    host.changeInfo = workoutQuestionsChanges(host, changedQuestion)
-    await hideQuestions(host.changeInfo.questionsToHide)
-    await showQuestions(host.changeInfo.questionsToShow)
-    administrateQuestionsRequirements(host.changeInfo)
-    if (host.changeInfo.questionToFocus)
-        await focusQuestion(host.changeInfo.questionToFocus)
+    if (_isAdministrating)
+        throw new Error('Already busy with administration, please await the _adminPromise')
+    _isAdministrating = true
+    let resolve, reject
+    _adminPromise = new Promise((res_, rej_) => {
+        resolve = res_
+        reject = rej_
+    })
+    try {
+        host.changeInfo = workoutQuestionsChanges(host, changedQuestion)
+        await hideQuestions(host.changeInfo.questionsToHide)
+        await showQuestions(host.changeInfo.questionsToShow)
+        administrateQuestionsRequirements(host.changeInfo)
+        if (host.changeInfo.questionToFocus)
+            await focusQuestion(host.changeInfo.questionToFocus)
+    } finally {
+        _isAdministrating = false
+        resolve()
+    }
 }
 
 function workoutQuestionsChanges(host, changedQuestion) {
@@ -270,13 +286,25 @@ function administrateInputsRequirement(inputs, required) {
     })
 }
 
-function propertyChanged(host, event) {
+async function propertyChanged(host, event) {
     const id = event.target.id
     if (!id)
         throw new Error(`All bound elements must have an id`)
     host[id] = event.target.type == 'checkbox'
         ? event.target.checked
         : event.target.value
+    if (id === 'cli') {
+        host.templates = host.clisMeta.getCliTemplates(host.cli)
+        host.template = ''
+    } else if (id === 'template') {
+        const template = host.templates.find(t => t.desc === host.template)
+        for (let argument of template.arguments) {
+            const element = host.shadowRoot.getElementById(argument.name)
+            element.value = argument.value
+            dispatch(element, 'change')
+            await _adminPromise
+        }
+    }
 }
 
 function questionChanged(host, event) {
@@ -290,13 +318,6 @@ function questionChanged(host, event) {
         : event.target.value
     administrateQuestions(host, event.target)
     buildPreview(host)
-    if (host.changeInfo.questionsThatShouldBeVisible[0].cliArgument.id === id) {
-        focusDefaultQuestion(host)
-    }
-}
-
-function focusDefaultQuestion(host) {
-
 }
 
 const CliArgumentsQuestionEngine = {

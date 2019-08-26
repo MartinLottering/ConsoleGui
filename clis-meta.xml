@@ -87,6 +87,7 @@
                     <argument name="Command" is="anyOf">
                         <value>deploy</value>
                         <value>execute</value>
+                        <value>repository</value>
                     </argument>
                 </focus-when>
                 <show-when>
@@ -94,6 +95,7 @@
                         <value>deploy</value>
                         <value>execute</value>
                         <value>copy</value>
+                        <value>repository</value>
                     </argument>
                 </show-when>
             </argument>
