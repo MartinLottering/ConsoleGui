@@ -338,7 +338,7 @@ const CliArgumentsQuestionEngine = {
                 </select>
             </div>
 
-            <div class="line" style="display: none;">
+            <div class="line">
                 <label for="template">Template</label>
                 <select id="template" onchange="${propertyChanged}">
                     <option value=""></option>

@@ -93,9 +93,31 @@ function createFocusWhens(focusWhens) {
     return results
 }
 
+function createFormatArgument(argumentMeta) {
+    const formatArgument = {
+        value: argumentMeta._text
+    }
+    return formatArgument
+}
+
+function createFormats(format) {
+    if (!format)
+        return []
+
+    const results = []
+    if (format.argument.length)
+        format.argument.forEach(argumentMeta => {
+            results.push(createFormatArgument(argumentMeta))
+        })
+    else
+        results.push(createFormatArgument(format.argument))
+    return results
+}
+
 function createArgument(argumentMeta) {
     const argument = {
         ...argumentMeta._attributes,
+        formats: createFormats(argumentMeta.format),
         id: idify(argumentMeta._attributes.name),
         options: createOptions(argumentMeta.options),
         showWhens: createShowWhens(argumentMeta["show-when"]),
