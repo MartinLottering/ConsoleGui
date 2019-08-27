@@ -1,12 +1,11 @@
-function copyToClipboard(host, event) {
-    if (host.text)
-        clipboard.writeText(host.text)
+function copyToClipboard (host, event) {
+  if (host.text) { clipboard.writeText(host.text) }
 }
 
 const CopyToClipboardButton = {
-    text: '',
+  text: '',
 
-    render: () => html`
+  render: () => html`
     <style>
         .white-box {
             padding: 2px;

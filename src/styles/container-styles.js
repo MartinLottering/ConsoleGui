@@ -15,4 +15,4 @@ module.exports = html`
             width: 100%;
         }   
     </style>
-`;
+`

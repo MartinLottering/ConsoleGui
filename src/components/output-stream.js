@@ -1,21 +1,20 @@
-function scrollToBottom(host) {
-    const output = host.shadowRoot.getElementById('output')
-    if (output)
-        output.scrollTop = output.scrollHeight + 20
+function scrollToBottom (host) {
+  const output = host.shadowRoot.getElementById('output')
+  if (output) { output.scrollTop = output.scrollHeight + 20 }
 }
 
 const OutputStream = {
-    lines: {
-        get: (host, lastValue) => {
-            return host._lines || lastValue || []
-        },
-        set: (host, value, lastValue) => {
-            host._lines = value
-            scrollToBottom(host)
-        }
+  lines: {
+    get: (host, lastValue) => {
+      return host._lines || lastValue || []
     },
+    set: (host, value, lastValue) => {
+      host._lines = value
+      scrollToBottom(host)
+    }
+  },
 
-    render: ({ lines }) => html`
+  render: ({ lines }) => html`
         ${containerStyles}
         <div id="outputContainer" class="container">
             <fieldset>

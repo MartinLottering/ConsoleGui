@@ -1,7 +1,7 @@
 const CliCommandPreview = {
-    text: '',
+  text: '',
 
-    render: ({ text }) => html`
+  render: ({ text }) => html`
         ${containerStyles}
         <div class="container">
             <fieldset>

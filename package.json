@@ -1,21 +1,26 @@
 {
-  "name": "cli-gui",
+  "name": "console-gui",
   "version": "1.0.0",
-  "description": "A GUI for CLIs.",
+  "description": "A graphical user interface (GUI) for console applications or command line interfaces.",
   "main": "src/main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "format": "standard --fix"
   },
   "keywords": [
+    "console",
+    "gui",
     "cli",
-    "command-line-interface",
-    "gui"
+    "command line interface"
   ],
   "author": "Martin Lottering",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "hybrids": "^4.0.2",
     "transitionjs": "0.0.7",
     "xml-js": "^1.6.11"
+  },
+  "devDependencies": {
+    "standard": "^14.0.2"
   }
 }
