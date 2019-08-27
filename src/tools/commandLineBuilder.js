@@ -20,7 +20,6 @@ function processArgument(processArgs, values, { id, format, formats, type }) {
 
 exports.getProcessStartInfo = function getProcessStartInfo({ processName, arguments, values }) {
     let processArgs = []
-
     arguments.forEach(pair => {
         processArgument(processArgs, values, pair.cliArgument)
     });

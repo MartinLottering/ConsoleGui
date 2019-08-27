@@ -11,14 +11,14 @@ module.exports = function (app, tray) {
         {
             label: 'Quit',
             click: _ => {
-                CliWindow.close()
+                ConsoleGuiWindow.close()
                 tray.destroy()
                 app.quit()
             }
         }
     ]
 
-    const CliWindow = require('./cliwindow/windowfactory')
+    const ConsoleGuiWindow = require('./console-gui-window/windowfactory')
 
     const clis = clisMetaParser()
     const cliMenus = clis.getClis().map(cli => {
@@ -27,7 +27,7 @@ module.exports = function (app, tray) {
             submenu: clis.getCliTemplates(cli.name).map(template => {
                 return {
                     label: template.desc,
-                    click: _ => CliWindow.run({ cli: cli.name, template: template.desc })
+                    click: _ => ConsoleGuiWindow.run({ cli: cli.name, template: template.desc })
                 }
             })
         }
