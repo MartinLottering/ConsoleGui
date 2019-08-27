@@ -35,6 +35,7 @@ function buildPreview(host) {
 
 function getCommandLineBuilderArgs(host) {
     return {
+        processName: host.cli,
         arguments: host.changeInfo.questionsThatShouldBeVisible,
         values: host.values
     }

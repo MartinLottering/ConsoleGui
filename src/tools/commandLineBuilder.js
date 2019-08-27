@@ -18,8 +18,7 @@ function processArgument(processArgs, values, { id, format, formats, type }) {
     }
 }
 
-exports.getProcessStartInfo = function getProcessStartInfo({ arguments, values }) {
-    let processName = 'pipeline'
+exports.getProcessStartInfo = function getProcessStartInfo({ processName, arguments, values }) {
     let processArgs = []
 
     arguments.forEach(pair => {
