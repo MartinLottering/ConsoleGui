@@ -9,5 +9,5 @@ app.on('ready', _ => {
     tray = new Tray(path.join('src', 'logo-16x16.png'))
     const contextMenu = menuBuilder(app, tray)
     tray.setContextMenu(contextMenu)
-    tray.setToolTip('Pipeline')
+    tray.setToolTip('Console GUI')
 })
