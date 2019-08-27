@@ -174,9 +174,19 @@ module.exports = function () {
         return cliObj.templates
     }
 
+    function getCliFile(cli) {
+        if (!cli)
+            return []
+        const cliObj = clis[cli]
+        if (!cliObj)
+            throw new Error(`Could not find cli "${cli}"`)
+        return cliObj.file
+    }
+
     return {
         getClis,
         getCliArguments,
-        getCliTemplates
+        getCliTemplates,
+        getCliFile
     }
 }

@@ -1,4 +1,46 @@
 <clis>
+    <cli name="npm" file="C:\Program Files\nodejs\npm.cmd">
+        <arguments>
+            <argument format="{value}" name="Command" type="select" required="true">
+                <options>
+                    <option>config</option>
+                </options>
+            </argument>
+            <argument format="{value}" name="Config Command" type="select" required="true">
+                <options>
+                    <option>rm</option>
+                </options>
+                <show-when>
+                    <argument name="Command" is="anyOf">
+                        <value>config</value>
+                    </argument>
+                </show-when>
+            </argument>
+            <argument format="{value}" name="Config" type="select" required="true">
+                <options>
+                    <option>proxy</option>
+                    <option>https-proxy</option>
+                </options>
+                <show-when>
+                    <argument name="Config Command" is="anyOf">
+                        <value>rm</value>
+                    </argument>
+                </show-when>
+            </argument>
+        </arguments>
+        <templates>
+            <template desc="Clear proxy">
+                <argument name="Command" value="config" />
+                <argument name="Config Command" value="rm" />
+                <argument name="Config" value="proxy" />
+            </template>
+            <template desc="Clear https-proxy">
+                <argument name="Command" value="config" />
+                <argument name="Config Command" value="rm" />
+                <argument name="Config" value="https-proxy" />
+            </template>
+        </templates>
+    </cli>
     <cli name="Pipeline" file="pipeline">
         <arguments>
             <argument format="--{value}" name="Command" type="select" required="true">

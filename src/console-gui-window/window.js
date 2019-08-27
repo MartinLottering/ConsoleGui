@@ -1,4 +1,4 @@
-const child_process = require('child_process')
+const childProcess = require('child_process')
 const clisMetaParser = require('../tools/clisMetaParser')
 const { ipcRenderer: ipc } = require('electron')
 
@@ -41,7 +41,7 @@ let child
 function start (startInfo) {
   output.lines = [`${startInfo.processName} ${startInfo.args.join(' ')}`]
 
-  child = child_process.spawn(startInfo.processName, startInfo.args)
+  child = childProcess.spawn(startInfo.processName, startInfo.args)
 
   child.on('error', addOutput)
   child.on('message', addOutput)

@@ -21,6 +21,8 @@
     "xml-js": "^1.6.11"
   },
   "devDependencies": {
+    "electron-builder": "^21.2.0",
     "standard": "^14.0.2"
-  }
+  },
+  "standard": {}
 }
