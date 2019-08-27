@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>Cli Gui</title>
+    <title>Console Gui</title>
     <link rel="stylesheet" href="../styles/styles.css" />
     <script>
         const { html, define, dispatch, parent, children } = require('hybrids')
@@ -10,6 +10,7 @@
         const { dialog, clipboard } = require('electron').remote
         const { transition } = require('transitionjs')
         const idify = require('../tools/idify')
+        const sleep = require('../tools/sleep')
     </script>
     <script src="../components/copy-to-clibboard-button.js"></script>
     <script src="../components/cli-arguments-question-engine.js"></script>

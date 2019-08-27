@@ -88,6 +88,7 @@
                         <value>deploy</value>
                         <value>execute</value>
                         <value>repository</value>
+                        <value>copy</value>
                     </argument>
                 </focus-when>
                 <show-when>

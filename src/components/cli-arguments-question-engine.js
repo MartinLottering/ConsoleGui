@@ -35,7 +35,7 @@ function buildPreview(host) {
 
 function getCommandLineBuilderArgs(host) {
     return {
-        processName: host.cli,
+        processName: host._cli,
         arguments: host.changeInfo.questionsThatShouldBeVisible,
         values: host.values
     }
@@ -82,12 +82,6 @@ async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array);
     }
-}
-
-function sleep(milliseconds) {
-    return new Promise((resolve, reject) => {
-        setTimeout(resolve, milliseconds)
-    })
 }
 
 function hideQuestions(questionsToHide) {
@@ -208,7 +202,7 @@ async function administrateQuestions(host, changedQuestion) {
 }
 
 function workoutQuestionsChanges(host, changedQuestion) {
-    const cliArguments = host.clisMeta.getCliArguments(host.cli)
+    const cliArguments = host.clisMeta.getCliArguments(host._cli)
     const questionsThatShouldBeVisible = []
     const questionsThatShouldBeHidden = []
     const questionsToHide = []
@@ -301,7 +295,7 @@ async function propertyChanged(host, event) {
     } else if (id === 'template' && host._template) {
         const template = host.templates.find(t => t.desc === host._template)
         for (let argument of template.arguments) {
-            const element = host.shadowRoot.getElementById(argument.name)
+            const element = host.shadowRoot.getElementById(argument.id)
             element.value = argument.value
             dispatch(element, 'change')
             await _adminPromise
@@ -370,6 +364,7 @@ const CliArgumentsQuestionEngine = {
     },
 
     render: ({ clisMeta, _cli: cli, templates, _template: template, arguments, preview }) => {
+
         return html`
 
     ${containerStyles}
@@ -386,7 +381,7 @@ const CliArgumentsQuestionEngine = {
                 <label for="cli">Cli</label>
                 <select id="cli" value="${cli}" onchange="${html.set('cli')}">
                     <option value=""></option>
-                    ${clisMeta.getClis().map(cli => html`<option value="${cli.name}">${cli.name}</option>`)}
+                    ${clisMeta && clisMeta.getClis().map(cli => html`<option value="${cli.name}">${cli.name}</option>`)}
                 </select>
             </div>
 
@@ -398,7 +393,7 @@ const CliArgumentsQuestionEngine = {
                 </select>
             </div>
 
-            ${clisMeta
+            ${clisMeta && clisMeta
                 .getCliArguments(cli)
                 .map(argument => html`
 

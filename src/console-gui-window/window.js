@@ -19,6 +19,8 @@ function initialize() {
             questionEngine.addEventListener('templatesLoaded', templatesLoadedHandler)
             questionEngine.cli = args.cli
             await promise
+            /* we need to render before setting the template */
+            await sleep(100)
             questionEngine.removeEventListener('templatesLoaded', templatesLoadedHandler)
         }
         questionEngine.template = args.template

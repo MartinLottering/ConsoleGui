@@ -94,7 +94,8 @@ function createArguments(arguments) {
 
 function createTemplateArgument(argumentMeta) {
     return {
-        ...argumentMeta._attributes
+        ...argumentMeta._attributes,
+        id: idify(argumentMeta._attributes.name)
     }
 }
 

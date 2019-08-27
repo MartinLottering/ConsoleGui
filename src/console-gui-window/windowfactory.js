@@ -2,19 +2,25 @@ const electron = require('electron')
 
 const { BrowserWindow } = electron
 
+const sleep = require('../tools/sleep')
+
+const devMode = false
+
 let window = new BrowserWindow({
-    width: 1500,
+    width: devMode ? 1500 : 700,
     height: 850,
-    //show: false,
-    //resizable: false,
+    show: devMode,
+    resizable: devMode,
     webPreferences: {
         nodeIntegration: true
     }
 })
 
-//window.removeMenu()
+if (!devMode)
+    window.removeMenu()
 window.loadURL(`file://${__dirname}/window.html`)
-window.openDevTools()
+if (devMode)
+    window.openDevTools()
 
 let closingApp = false
 
@@ -25,9 +31,12 @@ window.on('close', evt => {
     }
 })
 
-exports.run = function (args, done) {
+exports.run = async function (args, done) {
     if (!window.isVisible())
         window.show()
+    await sleep(100)
+    window.focus()
+    await sleep(100)
     window.webContents.send('populate', args)
 }
 
