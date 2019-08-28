@@ -137,7 +137,6 @@
                     <argument name="Command" is="anyOf">
                         <value>deploy</value>
                         <value>execute</value>
-                        <value>copy</value>
                         <value>repository</value>
                     </argument>
                 </show-when>
@@ -189,7 +188,7 @@
             <argument name="From" type="networklocation" required="true">
                 <format>
                     <argument>--from</argument>
-                    <argument>&quot;{value}&quot;</argument>
+                    <argument>{value}</argument>
                 </format>
                 <show-when>
                     <argument name="Command" is="anyOf">
@@ -200,7 +199,7 @@
             <argument name="To" type="networklocation" required="true">
                 <format>
                     <argument>--to</argument>
-                    <argument>&quot;{value}&quot;</argument>
+                    <argument>{value}</argument>
                 </format>
                 <show-when>
                     <argument name="Command" is="anyOf">
