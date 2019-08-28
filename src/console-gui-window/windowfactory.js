@@ -5,9 +5,10 @@ const { BrowserWindow } = electron
 const sleep = require('../tools/sleep')
 
 const devMode = false
+const addMenuAnyway = false
 
 const window = new BrowserWindow({
-  width: devMode ? 1500 : 700,
+  width: devMode ? 1500 : 1000,
   height: 850,
   show: devMode,
   resizable: devMode,
@@ -16,7 +17,7 @@ const window = new BrowserWindow({
   }
 })
 
-if (!devMode) { window.removeMenu() }
+if (!devMode && !addMenuAnyway) { window.removeMenu() }
 window.loadURL(`file://${__dirname}/window.html`)
 if (devMode) { window.openDevTools() }
 

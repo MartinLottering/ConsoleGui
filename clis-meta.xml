@@ -185,7 +185,7 @@
                     </argument>
                 </show-when>
             </argument>
-            <argument name="From" type="networklocation" required="true">
+            <argument name="From" type="networklocation" required="true" width="800px">
                 <format>
                     <argument>--from</argument>
                     <argument>{value}</argument>
@@ -196,7 +196,7 @@
                     </argument>
                 </show-when>
             </argument>
-            <argument name="To" type="networklocation" required="true">
+            <argument name="To" type="networklocation" required="true" width="800px">
                 <format>
                     <argument>--to</argument>
                     <argument>{value}</argument>
@@ -299,7 +299,7 @@
                 <argument name="Command" value="execute" />
                 <argument name="Environment" value="dev" />
             </template>
-            <template desc="Sync PL2 -> PL3 (Trusted)">
+            <template desc="Trusted Sync PL2 -> PL3">
                 <argument name="Command" value="copy" />
                 <argument name="Job Name" value="reposync111" />
                 <argument name="From" value="&quot;\\ccprdwf012\D$\Data\pipeline\Repositories\Trusted\{subsystem}\{package}*&quot;" />
@@ -307,7 +307,7 @@
                 <argument name="Timeout" value="00:30:00" />
                 <argument name="Overwrite" value="true" />
             </template>
-            <template desc="Sync PL3 -> PL2 (Untrusted)">
+            <template desc="Untrusted Sync PL3 -> PL2">
                 <argument name="Command" value="copy" />
                 <argument name="Job Name" value="reposync222" />
                 <argument name="From" value="&quot;\\plwinprd01\D$\Data\pipeline\Repositories\UnTrusted\{subsystem}\{package}*&quot;" />

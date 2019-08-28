@@ -401,20 +401,20 @@ const CliArgumentsQuestionEngine = {
                 <label for="${argument.id}">${argument.name}</label>
                 ${argument.type == "select"
                         ? html`
-                    <select id="${argument.id}" onchange="${questionChanged}">
+                    <select id="${argument.id}" onchange="${questionChanged}" style="${{ width: argument.width }}">
                         <option value=""></option>
                         ${argument.options.map(option => html`<option value="${option.value}">${option.value}</option>`)}
                     </select>`
                         : argument.type == "text" || argument.type == "networklocation"
                             ? html`
-                    <input id="${argument.id}" onchange="${questionChanged}" onkeyup="${questionChanged}" />`
+                    <input id="${argument.id}" onchange="${questionChanged}" onkeyup="${questionChanged}" style="${{ width: argument.width }}" />`
                             : argument.type == "directory"
                                 ? html`
-                    <input id="${argument.id}" onchange="${questionChanged}" onkeyup="${questionChanged}" />
+                    <input id="${argument.id}" onchange="${questionChanged}" onkeyup="${questionChanged}" style="${{ width: argument.width }}" />
                     <button onclick="${selectDirectory(argument.id)}">Select Directory</button>`
                                 : argument.type == "checkbox"
                                     ? html`
-                    <input id="${argument.id}" type="checkbox" onchange="${questionChanged}" onkeyup="${questionChanged}" />`
+                    <input id="${argument.id}" type="checkbox" onchange="${questionChanged}" onkeyup="${questionChanged}" style="${{ width: argument.width }}" />`
                                     : "unsupported"}
             </div>
             ` )}
