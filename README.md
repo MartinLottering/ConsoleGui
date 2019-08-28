@@ -22,3 +22,10 @@ If your team or organisation automate parts of their development or testing proc
 
 If your users ask you, "why don't you develop a GUI for your console application?", why not setup the commands in the configuration (xml) file, and send them this tool?
 
+# Your customized Console Gui Xml
+
+Your customized xml file is read from the %appdata% folder. 
+
+  e.g. C:\Users\MartinLottering\AppData\Roaming\ConsoleGui\clis-meta.xml
+
+You can safely add sensitive and private information or just customized templates to this file without it being shared with other people. It will then also be excluded from source control.

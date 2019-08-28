@@ -41,7 +41,7 @@
             </template>
         </templates>
     </cli>
-    <cli name="Pipeline" file="pipeline">
+    <cli name="Distributor" file="distributor">
         <arguments>
             <argument format="--{value}" name="Command" type="select" required="true">
                 <options>
@@ -303,43 +303,27 @@
             <template desc="Trusted Sync PL2 -> PL3">
                 <argument name="Command" value="copy" />
                 <argument name="Job Name" value="reposync111" />
-                <argument name="From" value="&quot;\\ccprdwf012\D$\Data\pipeline\Repositories\Trusted\{subsystem}\{package}*&quot;" />
-                <argument name="To" value="&quot;\\plwinprd03\D$\Data\pipeline\Repositories\Trusted\{subsystem}&quot;" />
+                <argument name="From" value="&quot;\\ccprdwf012\D$\Data\distributor\Repositories\Trusted\{subsystem}\{package}*&quot;" />
+                <argument name="To" value="&quot;\\plwinprd03\D$\Data\distributor\Repositories\Trusted\{subsystem}&quot;" />
                 <argument name="Timeout" value="00:30:00" />
                 <argument name="Overwrite" value="true" />
             </template>
             <template desc="Untrusted Sync PL3 -> PL2">
                 <argument name="Command" value="copy" />
                 <argument name="Job Name" value="reposync222" />
-                <argument name="From" value="&quot;\\plwinprd01\D$\Data\pipeline\Repositories\UnTrusted\{subsystem}\{package}*&quot;" />
-                <argument name="To" value="&quot;\\ccprdwf013\D$\Data\pipeline\Repositories\UnTrusted\{subsystem}&quot;" />
+                <argument name="From" value="&quot;\\plwinprd01\D$\Data\distributor\Repositories\UnTrusted\{subsystem}\{package}*&quot;" />
+                <argument name="To" value="&quot;\\ccprdwf013\D$\Data\distributor\Repositories\UnTrusted\{subsystem}&quot;" />
                 <argument name="Timeout" value="00:30:00" />
                 <argument name="Overwrite" value="true" />
             </template>
             <template desc="Delete trusted file">
                 <argument name="Command" value="execute" />
-                <argument name="Package Name" value="pipeline_demo_4.2.0_20190527" />
+                <argument name="Package Name" value="distributor_demo_4.2.0_20190527" />
                 <argument name="Machine" value="plwinprd03" />
                 <argument name="Script Name" value="folderhelper.ps1" />
-                <argument name="Parameters" value="&quot;Delete|D:\Data\pipeline\Repositories\Trusted\{subsystem}\{package}*" />
+                <argument name="Parameters" value="&quot;Delete|D:\Data\distributor\Repositories\Trusted\{subsystem}\{package}*" />
                 <argument name="Timeout" value="00:30:00" />
                 <argument name="Environment" value="prod" />
-            </template>
-            <template desc="Get secret from vault - DEV" focusArgument="Parameters">
-                <argument name="Command" value="execute" />
-                <argument name="Package Name" value="pipeline_demo_2.1.6_20180725" />
-                <argument name="Machine" value="ccdevwf065" />
-                <argument name="Script Name" value="parsertest.ps1" />
-                <argument name="Parameters" value="{v:KeyName}" />
-                <argument name="Environment" value="dev" />
-            </template>
-            <template desc="Get secret from vault - QA" focusArgument="Parameters">
-                <argument name="Command" value="execute" />
-                <argument name="Package Name" value="pipeline_demo_2.1.6_20180725" />
-                <argument name="Machine" value="ccprdapp077" />
-                <argument name="Script Name" value="parsertest.ps1" />
-                <argument name="Parameters" value="{v:KeyName}" />
-                <argument name="Environment" value="qa" />
             </template>
         </templates>
     </cli>

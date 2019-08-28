@@ -3,6 +3,8 @@ const path = require('path')
 const fs = require('fs')
 const idify = require('./idify')
 
+const FILE_NAME = 'clis-meta.xml'
+
 function createOption(optionMeta) {
     const option = {
         ...optionMeta._attributes,
@@ -140,8 +142,11 @@ function createCli(cliMeta) {
 }
 
 module.exports = function () {
-
-    const cliMetaPath = path.join(__dirname, '..', '..', 'clis-meta.xml')
+    let appDataPath = process.env.APPDATA || (process.platform == 'darwin' ? path.join(process.env.HOME, 'Library', 'Preferences') : path.join(process.env.HOME, ".local', 'share"))
+    appDataPath = path.join(appDataPath, 'ConsoleGui', FILE_NAME)
+    const cliMetaPath = fs.existsSync(appDataPath) 
+        ? appDataPath 
+        : path.join(__dirname, '..', '..', FILE_NAME)
     const cliMetaXml = fs.readFileSync(cliMetaPath, 'utf8')
     const cliMetaJson = convert.xml2json(cliMetaXml, { compact: true })
     const cliMeta = JSON.parse(cliMetaJson)
