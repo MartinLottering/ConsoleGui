@@ -41,43 +41,6 @@ function getCommandLineBuilderArgs(host) {
     }
 }
 
-// function findTemplateOPTIONUsingDesc(host, desc) {
-//     for (let i = 0; i < host.templates.length; i++) {
-//         if (host.templates[i].desc == desc)
-//             return host.templates[i]
-//     }
-//     throw new Error(`Could not find a template with description "${desc}"`)
-// }
-
-// function selectTemplate(host, templateDesc) {
-//     const template = findTemplateOPTIONUsingDesc(host, templateDesc)
-//     host.template = template.desc
-
-//     host.command = template.args.command || ''
-//     host.job = template.args.job || ''
-//     host.package = template.args.package || ''
-//     host.from = template.args.from || ''
-//     host.to = template.args.to || ''
-//     host.timeout = template.args.timeout || '00:30:00'
-//     host.overwrite = template.args.overwrite ? true : false
-//     host.script = template.args.script || ''
-//     host.parameters = template.args.parameters || ''
-//     host.environment = template.args.environment || ''
-//     host.machine = template.args.machine || ''
-//     host.tokenPackage = template.args.tokenPackage
-
-//     showFields(host)
-
-//     if (template.focus)
-//         setTimeout(() => {
-//             const control = host.shadowRoot.getElementById(template.focus)
-//             if (control) {
-//                 control.focus()
-//                 control.select()
-//             }
-//         }, 300)
-// }
-
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array);

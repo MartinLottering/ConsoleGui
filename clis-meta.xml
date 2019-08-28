@@ -235,6 +235,7 @@
                 <show-when>
                     <argument name="Command" is="anyOf">
                         <value>deploy</value>
+                        <value>execute</value>
                     </argument>
                 </show-when>
             </argument>
@@ -317,12 +318,28 @@
             </template>
             <template desc="Delete trusted file">
                 <argument name="Command" value="execute" />
-                <argument name="Package" value="pipeline_demo_4.2.0_20190527" />
+                <argument name="Package Name" value="pipeline_demo_4.2.0_20190527" />
                 <argument name="Machine" value="plwinprd03" />
-                <argument name="Script" value="folderhelper.ps1" />
+                <argument name="Script Name" value="folderhelper.ps1" />
                 <argument name="Parameters" value="&quot;Delete|D:\Data\pipeline\Repositories\Trusted\{subsystem}\{package}*" />
                 <argument name="Timeout" value="00:30:00" />
                 <argument name="Environment" value="prod" />
+            </template>
+            <template desc="Get secret from vault - DEV" focusArgument="Parameters">
+                <argument name="Command" value="execute" />
+                <argument name="Package Name" value="pipeline_demo_2.1.6_20180725" />
+                <argument name="Machine" value="ccdevwf065" />
+                <argument name="Script Name" value="parsertest.ps1" />
+                <argument name="Parameters" value="{v:KeyName}" />
+                <argument name="Environment" value="dev" />
+            </template>
+            <template desc="Get secret from vault - QA" focusArgument="Parameters">
+                <argument name="Command" value="execute" />
+                <argument name="Package Name" value="pipeline_demo_2.1.6_20180725" />
+                <argument name="Machine" value="ccprdapp077" />
+                <argument name="Script Name" value="parsertest.ps1" />
+                <argument name="Parameters" value="{v:KeyName}" />
+                <argument name="Environment" value="qa" />
             </template>
         </templates>
     </cli>

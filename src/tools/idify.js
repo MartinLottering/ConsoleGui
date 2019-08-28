@@ -1,3 +1,3 @@
 module.exports = function idify (name) {
-  return name.split(' ').join('')
+  return !name ? name : name.split(' ').join('')
 }
