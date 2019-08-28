@@ -106,6 +106,7 @@ function createTemplateArguments(templateMeta) {
 function createTemplate(templateMeta) {
     const template = {
         ...templateMeta._attributes,
+        focusArgumentId: idify(templateMeta._attributes.focusArgument),
         arguments: createTemplateArguments(templateMeta)
     }
     return template

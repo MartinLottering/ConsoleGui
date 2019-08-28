@@ -1,6 +1,5 @@
-const electron = require('electron')
-
-const { BrowserWindow } = electron
+const { BrowserWindow } = require('electron')
+const path = require('path')
 
 const sleep = require('../tools/sleep')
 
@@ -14,7 +13,8 @@ const window = new BrowserWindow({
   resizable: devMode,
   webPreferences: {
     nodeIntegration: true
-  }
+  },
+  icon: path.join(__dirname, '..', 'images', 'logo-32x32.png')
 })
 
 if (!devMode && !addMenuAnyway) { window.removeMenu() }
