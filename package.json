@@ -5,7 +5,9 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "format": "standard --fix"
+    "format": "standard --fix",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
   "keywords": [
     "console",
@@ -24,5 +26,19 @@
     "electron-builder": "^21.2.0",
     "standard": "^14.0.2"
   },
-  "standard": {}
+  "standard": {},
+  "build": {
+    "appId": "com.ConsoleGui",
+    "productName": "Console Gui",
+    "directories": {
+      "output": "./output",
+      "app": "."
+    },
+    "win": {},
+    "buildDependenciesFromSource": true,
+    "electronVersion": "6.0.7",
+    "nodeVersion": "current",
+    "includePdb": true,
+    "nsis": {}
+  }
 }
