@@ -5,9 +5,7 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "format": "standard --fix",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "format": "standard --fix"
   },
   "keywords": [
     "console",
@@ -23,7 +21,6 @@
     "xml-js": "^1.6.11"
   },
   "devDependencies": {
-    "electron-builder": "^21.2.0",
     "standard": "^14.0.2"
   },
   "standard": {},
