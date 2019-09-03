@@ -3,7 +3,7 @@ const path = require('path')
 
 const sleep = require('../tools/sleep')
 
-const devMode = false
+const devMode = true
 const addMenuAnyway = false
 
 const window = new BrowserWindow({

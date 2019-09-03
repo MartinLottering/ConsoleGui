@@ -88,8 +88,8 @@ async function showQuestions(questionsToShow) {
         })
 }
 
-function whenRuleMet(host, cliArguments, whenRules) {
-    let metRule = null
+function whenRulesMet(host, cliArguments, whenRules, changeInfo) {
+    const rulesMet = []
     for (var whenRule of whenRules) {
         const whenArgument = cliArguments.find(a => a.id == whenRule.argumentId)
         if (!whenArgument)
@@ -97,29 +97,29 @@ function whenRuleMet(host, cliArguments, whenRules) {
         if (whenRule.is === "anyOf") {
             var found = false
             for (var val of whenRule.values) {
-                if (val.value === host.values[whenRule.argumentId]) {
+                const isQuestionVisible = 
+                    changeInfo && changeInfo.questionsThatShouldBeVisible.find(_ => _.cliArgument.id === whenRule.argumentId)
+                if (isQuestionVisible && val.value === host.values[whenRule.argumentId]) {
                     found = true
                     break
                 }
             }
-            if (found) {
-                metRule = whenRule
-                break
-            }
+            if (found) 
+                rulesMet.push(whenRule)
         }
     }
-    return metRule
+    return rulesMet
 }
 
-function canShowQuestion(host, cliArguments, cliArgument) {
-    return !!whenRuleMet(host, cliArguments, cliArgument.showWhens)
+function canShowQuestion(host, cliArguments, cliArgument, changeInfo) {
+    return whenRulesMet(host, cliArguments, cliArgument.showWhens, changeInfo).length == cliArgument.showWhens.length
 }
 
-function canFocusQuestion(host, cliArguments, cliArgument, changedQuestion) {
-    const metRule = whenRuleMet(host, cliArguments, cliArgument.focusWhens)
-    if (!metRule)
+function canFocusQuestion(host, cliArguments, cliArgument, changedQuestion, changeInfo) {
+    const metRules = whenRulesMet(host, cliArguments, cliArgument.focusWhens, changeInfo)
+    if (!metRules || !metRules.length)
         return false
-    return metRule.argumentId == changedQuestion.id
+    return metRules.find(_ => _.argumentId === changedQuestion.id)
 }
 
 function findQuestion(host, cliArgument) {
@@ -166,45 +166,42 @@ async function administrateQuestions(host, changedQuestion) {
 
 function workoutQuestionsChanges(host, changedQuestion) {
     const cliArguments = host.clisMeta.getCliArguments(host._cli)
-    const questionsThatShouldBeVisible = []
-    const questionsThatShouldBeHidden = []
-    const questionsToHide = []
-    const questionsToShow = []
+    const changeInfo = {
+        questionsThatShouldBeHidden: [],
+        questionsThatShouldBeVisible: [],
+        questionsToHide: [],
+        questionsToShow: [],
+        questionToFocus: null
+    }
     let questionToFocus = null
     for (var cliArgument of cliArguments) {
         const question = findQuestion(host, cliArgument)
         if (cliArgument.showWhens && cliArgument.showWhens.length) {
-            const show = canShowQuestion(host, cliArguments, cliArgument)
+            const show = canShowQuestion(host, cliArguments, cliArgument, changeInfo)
             const isVisible = question.style.display !== "none"
             if (show && !isVisible) {
-                questionsToShow.push(question)
-                questionsThatShouldBeVisible.push({ question, cliArgument })
+                changeInfo.questionsToShow.push(question)
+                changeInfo.questionsThatShouldBeVisible.push({ question, cliArgument })
             }
             else if (!show && isVisible) {
-                questionsToHide.push(question)
-                questionsThatShouldBeHidden.push(question)
+                changeInfo.questionsToHide.push(question)
+                changeInfo.questionsThatShouldBeHidden.push(question)
             } else if (show) {
-                questionsThatShouldBeVisible.push({ question, cliArgument })
+                changeInfo.questionsThatShouldBeVisible.push({ question, cliArgument })
             } else {
-                questionsThatShouldBeHidden.push(question)
+                changeInfo.questionsThatShouldBeHidden.push(question)
             }
         } else {
-            questionsThatShouldBeVisible.push({ question, cliArgument })
+            changeInfo.questionsThatShouldBeVisible.push({ question, cliArgument })
         }
         if (cliArgument.focusWhens && cliArgument.focusWhens.length) {
-            const focus = canFocusQuestion(host, cliArguments, cliArgument, changedQuestion)
+            const focus = canFocusQuestion(host, cliArguments, cliArgument, changedQuestion, changeInfo)
             const isFocused = document.activeElement === question
             if (focus && !isFocused)
-                questionToFocus = question
+            changeInfo.questionToFocus = question
         }
     }
-    return {
-        questionsThatShouldBeHidden,
-        questionsThatShouldBeVisible,
-        questionsToHide,
-        questionsToShow,
-        questionToFocus
-    }
+    return changeInfo
 }
 
 function questionInputsOrSelects(questionDiv) {
