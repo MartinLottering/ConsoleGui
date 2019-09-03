@@ -1,10 +1,14 @@
 # ConsoleGui
 
-A simple graphical user interface for console applications or command line interfaces.
+Console Gui uses a question engine to build a list of questions that form the arguments to a console application. 
 
-Create reusable templates of combinations of parameters passed to the console application.
+It is a simple graphical user interface for console applications or command line interfaces. 
 
-A tray menu provides quick access to your console templates in the gui.
+You can create reusable templates of combinations of parameters passed to the console application.
+
+You can give default values to console arguments based on which template you start with.
+
+A tray menu provides quick access to your templates and the gui.
 
 Decide which parameters to hide and show when other parameters change.
 
@@ -13,6 +17,12 @@ Also decide which parameter to focus and start with as parameters change.
 The console parameter rules are maintained in a easy to understand xml file.
 
 # Who is this tool for?
+
+If you
+(1) want to type less when using a console application.
+(2) use a console application with specific parameters often.
+(3) cannot remember all the console argument combinations.
+(4) ...
 
 I recently went on production-support duty at the office and found myself supporting users by running commands in a console application. The commands were pretty complicated and it was easy to make mistakes. So I eventually copied and pasted the commands from a saved text file to make it easier. A tool like this would have made life so much easier.
 
