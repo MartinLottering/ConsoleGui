@@ -93,7 +93,7 @@ function whenRulesMet(host, cliArguments, whenRules, changeInfo) {
     for (var whenRule of whenRules) {
         const whenArgument = cliArguments.find(a => a.id == whenRule.argumentId)
         if (!whenArgument)
-            throw new Error(`When rule points to an argument that does not exist: ${whenRule.name}`)
+            throw new Error(`When-rule points to an argument that does not exist: ${whenRule.name}`)
         if (whenRule.is === "anyOf") {
             var found = false
             for (var val of whenRule.values) {
