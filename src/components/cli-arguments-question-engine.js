@@ -122,12 +122,21 @@ function canFocusQuestion(host, cliArguments, cliArgument, changedQuestion, chan
     return metRules.find(_ => _.argumentId === changedQuestion.id)
 }
 
-function findQuestion(host, cliArgument) {
+function findQuestionUsingArgument(host, cliArgument) {
     const questions = host.shadowRoot.querySelectorAll(`#div_${cliArgument.id}`)
     if (questions.length > 1)
         throw new Error(`Argument names must be unique. Found ${quuestions.length.toString()} questions called '${cliArgument.name}'`)
     if (questions.length < 1)
         throw new Error(`Couldn't find a question for argument ${cliArgument.name || cliArgument.format || cliArgument.type}`)
+    return questions[0]
+}
+
+function findQuestionUsingId(host, argumentId) {
+    const questions = host.shadowRoot.querySelectorAll(`#div_${argumentId}`)
+    if (questions.length > 1)
+        throw new Error(`Argument names must be unique. Found ${quuestions.length.toString()} questions called '${argumentId}'`)
+    if (questions.length < 1)
+        throw new Error(`Couldn't find a question for argument ${argumentId}`)
     return questions[0]
 }
 
@@ -146,10 +155,10 @@ async function administrateQuestions(host, changedQuestion) {
     if (_isAdministrating)
         throw new Error('Already busy with administration, please await the _adminPromise')
     _isAdministrating = true
-    let resolve, reject
+    let resolveAdminPromise, rejectAdmin
     _adminPromise = new Promise((res_, rej_) => {
-        resolve = res_
-        reject = rej_
+        resolveAdminPromise = res_
+        rejectAdmin = rej_
     })
     try {
         host.changeInfo = workoutQuestionsChanges(host, changedQuestion)
@@ -160,12 +169,11 @@ async function administrateQuestions(host, changedQuestion) {
             await focusQuestion(host.changeInfo.questionToFocus)
     } finally {
         _isAdministrating = false
-        resolve()
+        resolveAdminPromise()
     }
 }
 
 function workoutQuestionsChanges(host, changedQuestion) {
-    const cliArguments = host.clisMeta.getCliArguments(host._cli)
     const changeInfo = {
         questionsThatShouldBeHidden: [],
         questionsThatShouldBeVisible: [],
@@ -173,9 +181,12 @@ function workoutQuestionsChanges(host, changedQuestion) {
         questionsToShow: [],
         questionToFocus: null
     }
-    let questionToFocus = null
+    if (_applyingTemplate && _applyingTemplate.focusArgumentId) {
+        changeInfo.questionToFocus = findQuestionUsingId(host, _applyingTemplate.focusArgumentId)
+    }
+    const cliArguments = host.clisMeta.getCliArguments(host._cli)
     for (var cliArgument of cliArguments) {
-        const question = findQuestion(host, cliArgument)
+        const question = findQuestionUsingArgument(host, cliArgument)
         if (cliArgument.showWhens && cliArgument.showWhens.length) {
             const show = canShowQuestion(host, cliArguments, cliArgument, changeInfo)
             const isVisible = question.style.display !== "none"
@@ -194,11 +205,11 @@ function workoutQuestionsChanges(host, changedQuestion) {
         } else {
             changeInfo.questionsThatShouldBeVisible.push({ question, cliArgument })
         }
-        if (cliArgument.focusWhens && cliArgument.focusWhens.length) {
+        if (!changeInfo.questionToFocus && cliArgument.focusWhens && cliArgument.focusWhens.length) {
             const focus = canFocusQuestion(host, cliArguments, cliArgument, changedQuestion, changeInfo)
             const isFocused = document.activeElement === question
             if (focus && !isFocused)
-            changeInfo.questionToFocus = question
+                changeInfo.questionToFocus = question
         }
     }
     return changeInfo
@@ -252,14 +263,23 @@ async function propertyChanged(host, event) {
         host.templates = host.clisMeta.getCliTemplates(host._cli)
         host.template = ''
         dispatch(host, 'templatesLoaded')
-    } else if (id === 'template' && host._template) {
-        const template = host.templates.find(t => t.desc === host._template)
-        for (let argument of template.arguments) {
+    } else if (id === 'template' && host._template) 
+        await applyTemplate(host)
+}
+
+let _applyingTemplate
+
+async function applyTemplate(host) {
+    _applyingTemplate = host.templates.find(t => t.desc === host._template)
+    try {
+        for (let argument of _applyingTemplate.arguments) {
             const element = host.shadowRoot.getElementById(argument.id)
             element.value = argument.value
             dispatch(element, 'change')
             await _adminPromise
         }
+    } finally {
+        _applyingTemplate = null
     }
 }
 
